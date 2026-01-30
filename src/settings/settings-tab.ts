@@ -25,9 +25,6 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     // Terminal Settings Section
     this.renderTerminalSection(containerEl);
 
-    // Agent Settings Section
-    this.renderAgentSection(containerEl);
-
     // MCP Settings Section
     this.renderMcpSection(containerEl);
   }
@@ -36,10 +33,15 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     const section = containerEl.createDiv({ cls: "integration-settings-section" });
     section.createEl("h3", { text: "🔑 API 키 관리" });
 
+    section.createEl("p", {
+      text: "터미널에서 환경변수로 자동 주입됩니다. Claude Max 구독자는 OAuth 로그인 사용 가능.",
+      cls: "setting-item-description",
+    });
+
     // Anthropic API Key
     new Setting(section)
       .setName("Anthropic API Key (선택)")
-      .setDesc("Claude Max 구독자는 OAuth 로그인 사용 가능. API 키는 터미널에서 직접 API 호출 시 필요.")
+      .setDesc("터미널에서 ANTHROPIC_API_KEY로 주입")
       .addText((text) =>
         text
           .setPlaceholder("sk-ant-... (비워두면 OAuth 사용)")
@@ -52,8 +54,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Slack Bot Token
     new Setting(section)
-      .setName("Slack Bot Token")
-      .setDesc("Slack 연동을 위한 봇 토큰 (선택)")
+      .setName("Slack Bot Token (선택)")
+      .setDesc("MCP Slack 서버용 토큰")
       .addText((text) =>
         text
           .setPlaceholder("xoxb-...")
@@ -66,8 +68,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Atlassian API Token
     new Setting(section)
-      .setName("Atlassian API Token")
-      .setDesc("Confluence/Jira 연동을 위한 토큰 (선택)")
+      .setName("Atlassian API Token (선택)")
+      .setDesc("MCP Confluence/Jira 서버용 토큰")
       .addText((text) =>
         text
           .setPlaceholder("ATATT...")
@@ -122,42 +124,6 @@ export class IntegrationSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.terminalFontFamily)
           .onChange(async (value) => {
             this.plugin.settings.terminalFontFamily = value;
-            await this.plugin.saveSettings();
-          })
-      );
-  }
-
-  private renderAgentSection(containerEl: HTMLElement): void {
-    const section = containerEl.createDiv({ cls: "integration-settings-section" });
-    section.createEl("h3", { text: "🤖 에이전트 설정" });
-
-    // Default Model
-    new Setting(section)
-      .setName("기본 모델")
-      .setDesc("Agent Panel에서 사용할 기본 모델")
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("claude-sonnet-4-20250514", "Claude Sonnet 4")
-          .addOption("claude-opus-4-20250514", "Claude Opus 4")
-          .addOption("claude-3-5-haiku-20241022", "Claude 3.5 Haiku")
-          .setValue(this.plugin.settings.defaultModel)
-          .onChange(async (value) => {
-            this.plugin.settings.defaultModel = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    // Max Tokens
-    new Setting(section)
-      .setName("최대 토큰")
-      .setDesc("응답 최대 토큰 수")
-      .addSlider((slider) =>
-        slider
-          .setLimits(1024, 8192, 512)
-          .setValue(this.plugin.settings.maxTokens)
-          .setDynamicTooltip()
-          .onChange(async (value) => {
-            this.plugin.settings.maxTokens = value;
             await this.plugin.saveSettings();
           })
       );

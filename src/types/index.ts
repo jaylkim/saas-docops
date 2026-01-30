@@ -2,14 +2,6 @@
  * Type Definitions for SaaS DocOps
  */
 
-// Message Types for Agent Panel
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: number;
-}
-
 // Disposable pattern for resource cleanup
 export interface IDisposable {
   dispose(): void;
@@ -46,45 +38,6 @@ export interface ABICheckResult {
 export interface PTYEventHandlers {
   onData?: (data: string) => void;
   onExit?: (exitCode: number, signal?: number) => void;
-}
-
-// Agent Connection State
-export type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
-
-// Mention System Types
-export interface MentionMatch {
-  query: string;
-  startIndex: number;
-  endIndex: number;
-  isComplete: boolean;
-}
-
-export interface NoteSearchResult {
-  path: string;
-  name: string;
-  folder: string;
-  score: number;
-}
-
-export interface ResolvedMention {
-  noteName: string;
-  path: string;
-  content: string;
-  truncated: boolean;
-  error?: string;
-}
-
-// Claude Streaming Types
-export interface StreamCallbacks {
-  onChunk: (text: string) => void;
-  onComplete: (fullText: string) => void;
-  onError: (error: string) => void;
-}
-
-// Message History Persistence
-export interface MessageHistory {
-  messages: ChatMessage[];
-  updatedAt: number;
 }
 
 // MCP Tool Definition

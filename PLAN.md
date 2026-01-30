@@ -4,13 +4,20 @@
 
 **Phase 2: 터미널 통합** ✅ 완료 (2025-01-31)
 
+## 프로젝트 방향
+
+**Terminal-first 접근**: Obsidian 내에서 Claude Code CLI를 직접 실행하는 터미널 통합에 집중.
+
+- Agent Panel (채팅 UI) 구현은 제외
+- Claude Code의 모든 기능을 터미널에서 직접 사용
+- GUI는 환경변수 관리, MCP 설정에만 집중
+
 ## 전체 로드맵
 
 ### Phase 1: 초기 설정 ✅
 - [x] 프로젝트 구조 생성 (package.json, tsconfig.json, esbuild)
 - [x] 플러그인 진입점 (main.ts)
 - [x] 터미널 뷰 stub
-- [x] 에이전트 뷰 stub (React)
 - [x] 설정 탭 기본 구현
 - [x] 빌드 테스트 완료
 
@@ -39,34 +46,24 @@ scripts/
 └── dev-watch.sh          # watch + 자동 배포
 ```
 
-### Phase 3: 에이전트 통합 🔲
-- [ ] Agent Client fork 코드 분석
-- [ ] ACP SDK 연결
-- [ ] 스트리밍 응답
-- [ ] @notename 멘션 시스템
-- [ ] 메시지 히스토리
-
-### Phase 4: 환경변수 GUI 🔲
+### Phase 3: 환경변수 GUI 🔲
 - [ ] 온보딩 위자드 UI
 - [ ] 환경 점검 (Node.js, Git, Claude Code)
 - [ ] API 키 테스트 기능
-- [ ] 자동 설치 기능
+- [ ] OAuth 로그인 상태 확인
 
-### Phase 5: MCP 연동 🔲
-- [ ] .claude/settings.json 관리
-- [ ] Slack MCP 서버 연동
-- [ ] Confluence MCP 서버 연동
-- [ ] Bitbucket MCP 서버 연동
+### Phase 4: MCP 연동 🔲
+- [ ] .claude/settings.json GUI 관리
+- [ ] MCP 서버 상태 표시
+- [ ] 서버 활성화/비활성화 토글
 
-### Phase 6: Quick Actions 🔲
-- [ ] Quick Actions UI
-- [ ] Git Sync 액션
-- [ ] Slack 공유 액션
-- [ ] Confluence 동기화 액션
+### Phase 5: Quick Actions 🔲
+- [ ] Quick Actions UI (리본 또는 명령 팔레트)
+- [ ] 자주 쓰는 Claude 명령 원클릭 실행
 - [ ] 사용자 정의 액션
 
-### Phase 7: 팀 설정 & 문서화 🔲
-- [ ] vault 내 팀 설정 공유 (agents/, skills/)
+### Phase 6: 팀 설정 & 문서화 🔲
+- [ ] vault 내 팀 설정 공유 (.claude/, agents/, skills/)
 - [ ] 사용자 문서
 - [ ] 개발자 문서
 
@@ -109,7 +106,6 @@ npm run deploy:test
 ## 참조 리포지토리
 
 - **O-Terminal**: https://github.com/Quorafind/O-Terminal (Apache 2.0)
-- **Agent Client**: https://github.com/anthropics/obsidian-agent-client (Apache 2.0)
 
 ---
 
@@ -118,7 +114,7 @@ npm run deploy:test
 ### 세션 1 (2025-01-31)
 - Phase 1 완료
 - 기본 플러그인 구조 생성
-- 터미널/에이전트 뷰 stub 구현
+- 터미널 뷰 stub 구현
 - Obsidian에서 로드 테스트 성공
 
 ### 세션 2 (2025-01-31)
@@ -134,4 +130,13 @@ npm run deploy:test
   - Obsidian Electron 33.3.2에 맞춰 재빌드
   - 플러그인 폴더에 node_modules 복사 방식
   - `initElectronBridge()`로 절대 경로 로드
-- "Integration AI Workspace" → "SaaS DocOps" 명칭 통일
+
+### 세션 3 (2025-01-31)
+- Agent Panel 구현 시도 후 제거
+  - Claude Code CLI 스폰 + 스트리밍 응답
+  - @notename 멘션 시스템 (자동완성)
+  - 구현이 매끄럽지 않아 제거 결정
+- **Terminal-first 전략으로 방향 전환**
+  - Claude Code의 모든 기능을 터미널에서 직접 사용
+  - GUI는 환경변수/MCP 관리에만 집중
+- OAuth 지원 추가 (Claude Max 구독자용)

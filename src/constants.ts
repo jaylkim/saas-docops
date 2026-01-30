@@ -4,7 +4,6 @@
 
 // View Types
 export const TERMINAL_VIEW_TYPE = "integration-terminal-view";
-export const AGENT_VIEW_TYPE = "integration-agent-view";
 
 // Plugin Info
 export const PLUGIN_ID = "saas-docops";
@@ -12,7 +11,7 @@ export const PLUGIN_NAME = "SaaS DocOps";
 
 // Default Settings
 export const DEFAULT_SETTINGS = {
-  // API Keys (stored securely)
+  // API Keys (터미널에서 환경변수로 주입)
   anthropicApiKey: "",
   slackBotToken: "",
   atlassianApiToken: "",
@@ -21,10 +20,6 @@ export const DEFAULT_SETTINGS = {
   terminalShell: "",
   terminalFontSize: 14,
   terminalFontFamily: "monospace",
-
-  // Agent Settings
-  defaultModel: "claude-sonnet-4-20250514",
-  maxTokens: 4096,
 
   // MCP Settings
   mcpServers: {} as Record<string, MCPServerConfig>,
@@ -44,7 +39,6 @@ export type IntegrationSettings = typeof DEFAULT_SETTINGS;
 // Icon Names
 export const ICONS = {
   terminal: "terminal",
-  agent: "message-square",
   settings: "settings",
   sync: "refresh-cw",
   slack: "send",
