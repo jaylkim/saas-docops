@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output
+main.js
+*.js.map
+
+# Native binaries
+native/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment & Secrets
+.env
+.env.*
+*.env.json
+
+# AI Assistants
+CLAUDE.md
+.claude/
+GEMINI.md
+.gemini/
+CODEX.md
+.codex/
+AGENTS.md
+.cursor/
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Obsidian
+data.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+coverage/

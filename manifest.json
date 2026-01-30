@@ -1,0 +1,9 @@
+{
+  "id": "saas-docops",
+  "name": "SaaS DocOps",
+  "version": "0.1.0",
+  "minAppVersion": "1.11.0",
+  "description": "Claude Code 풀기능을 GUI에서 사용. 채팅 UI + 터미널 통합.",
+  "author": "Integration Team",
+  "isDesktopOnly": true
+}
