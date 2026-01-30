@@ -27,17 +27,15 @@ export class ClaudeManager {
 
   /**
    * Send a message to Claude and stream the response
+   *
+   * Authentication: Claude CLI handles auth automatically.
+   * - OAuth login (Claude Max subscription) - recommended
+   * - API key via ANTHROPIC_API_KEY env var - optional
    */
   async sendMessage(
     userInput: string,
     callbacks: StreamCallbacks
   ): Promise<void> {
-    // Check API key
-    if (!this.plugin.settings.anthropicApiKey) {
-      callbacks.onError("API 키가 설정되지 않았습니다. 설정에서 Anthropic API 키를 입력하세요.");
-      return;
-    }
-
     // Stop any existing request
     this.stopGeneration();
 
@@ -166,7 +164,7 @@ export class ClaudeManager {
     const lower = buffer.toLowerCase();
 
     if (lower.includes("api key") || lower.includes("unauthorized") || lower.includes("authentication")) {
-      return "API 키가 유효하지 않습니다. 설정에서 확인하세요.";
+      return "인증이 필요합니다. 터미널에서 `claude` 실행 후 OAuth 로그인하거나, 설정에서 API 키를 입력하세요.";
     }
 
     if (lower.includes("rate limit") || lower.includes("429")) {

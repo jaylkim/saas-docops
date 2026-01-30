@@ -219,6 +219,8 @@ function AgentPanel({ plugin }: AgentPanelProps): React.ReactElement {
     }
   };
 
+  // Claude CLI handles auth (OAuth or API key)
+  // API key is optional - OAuth login is recommended for Max subscribers
   const hasApiKey = !!plugin.settings.anthropicApiKey;
 
   return (
@@ -228,11 +230,12 @@ function AgentPanel({ plugin }: AgentPanelProps): React.ReactElement {
         <span style={{ fontSize: "18px" }}>🤖</span>
         <h4>Agent Panel</h4>
         <span
-          className={`integration-status-indicator ${hasApiKey ? "connected" : "disconnected"}`}
+          className="integration-status-indicator connected"
           style={{ marginLeft: "auto" }}
+          title={hasApiKey ? "API 키 사용" : "OAuth 로그인 사용 (Claude Max)"}
         >
           <span className="integration-status-dot" />
-          {hasApiKey ? "준비됨" : "API 키 필요"}
+          {hasApiKey ? "API 키" : "OAuth"}
         </span>
       </div>
 

@@ -38,22 +38,16 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Anthropic API Key
     new Setting(section)
-      .setName("Anthropic API Key")
-      .setDesc("Claude API 사용을 위한 키")
+      .setName("Anthropic API Key (선택)")
+      .setDesc("Claude Max 구독자는 OAuth 로그인 사용 가능. API 키는 터미널에서 직접 API 호출 시 필요.")
       .addText((text) =>
         text
-          .setPlaceholder("sk-ant-...")
+          .setPlaceholder("sk-ant-... (비워두면 OAuth 사용)")
           .setValue(this.plugin.settings.anthropicApiKey)
           .onChange(async (value) => {
             this.plugin.settings.anthropicApiKey = value;
             await this.plugin.saveSettings();
           })
-      )
-      .addButton((btn) =>
-        btn.setButtonText("테스트").onClick(() => {
-          // TODO: Implement API key test
-          console.log("Testing Anthropic API key...");
-        })
       );
 
     // Slack Bot Token
