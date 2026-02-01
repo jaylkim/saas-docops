@@ -2,6 +2,12 @@
  * SaaS DocOps Styles
  */
 
+/* ===== Custom CSS Variables ===== */
+:root {
+  --saas-accent-blue: var(--text-accent, #0096ff);
+  --saas-accent-purple: #8a2be2;
+}
+
 /* ===== Settings Section ===== */
 .integration-settings-section {
   margin-bottom: 2rem;
@@ -15,7 +21,7 @@
 
 /* ===== Setup Wizard Modal ===== */
 .saas-docops-wizard.modal {
-  width: 720px !important;
+  width: min(720px, 95vw) !important;
   max-width: 95vw !important;
   height: auto !important;
   max-height: none !important;
@@ -256,11 +262,69 @@
   line-height: 1.5;
 }
 
+/* Welcome Step Config Selection */
+.wizard-config-selection {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+}
+
+.wizard-config-selection h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.wizard-config-options-mini {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.config-option-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--background-primary);
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+  min-width: 160px;
+}
+
+.config-option-mini:hover {
+  border-color: var(--interactive-accent);
+}
+
+.config-option-mini:has(input:checked) {
+  border-color: var(--interactive-accent);
+  background: rgba(var(--interactive-accent-rgb), 0.08);
+}
+
+.config-option-mini input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.config-option-mini label {
+  cursor: pointer;
+  flex: 1;
+}
+
+.option-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
 /* Info box */
 .wizard-info-box {
   padding: 14px 16px;
-  background: rgba(0, 150, 255, 0.08);
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.08);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.2);
   border-radius: 8px;
   margin-bottom: 16px;
 }
@@ -268,7 +332,7 @@
 .wizard-info-box h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #0096ff;
+  color: var(--saas-accent-blue);
 }
 
 .wizard-info-box p {
@@ -588,7 +652,7 @@
   margin-bottom: 16px;
 }
 
-.wizard-setup-guide > h4 {
+.wizard-setup-guide>h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
 }
@@ -936,13 +1000,13 @@
 }
 
 .mcp-transport-sse {
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
 }
 
 .mcp-transport-http {
   background: rgba(138, 43, 226, 0.15);
-  color: #8a2be2;
+  color: var(--saas-accent-purple);
 }
 
 /* OAuth note */
@@ -1017,8 +1081,8 @@
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
   font-weight: 500;
 }
 
@@ -1169,8 +1233,8 @@
 /* MCP Modal info box */
 .mcp-modal-info {
   padding: 14px 16px;
-  background: rgba(0, 150, 255, 0.08);
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.08);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.2);
   border-radius: 8px;
   margin-bottom: 16px;
 }
@@ -1178,7 +1242,7 @@
 .mcp-modal-info h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
-  color: #0096ff;
+  color: var(--saas-accent-blue);
 }
 
 .mcp-modal-info p {
@@ -1582,15 +1646,18 @@
 }
 
 .mcp-health-checking {
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
   animation: mcp-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes mcp-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -1674,66 +1741,115 @@
 }
 
 @keyframes git-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+/* Tab Bar */
 /* Tab Bar */
 .git-tab-bar {
   display: flex;
   gap: 4px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 0 12px;
   background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
   flex-shrink: 0;
   overflow-x: auto;
+  align-items: flex-end;
 }
 
-.git-tab {
+.git-tab-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 16px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  min-width: 100px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  margin-bottom: -1px;
+  /* Overlap border */
+}
+
+.git-tab-wrapper:hover {
+  background: var(--background-modifier-hover);
+}
+
+.git-tab-wrapper.git-tab-active {
+  background: var(--background-primary);
+  border-color: var(--background-modifier-border);
+  border-top: 2px solid var(--interactive-accent);
+  border-bottom: 1px solid var(--background-primary);
+  z-index: 1;
+}
+
+.git-tab-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
   color: var(--text-muted);
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  transition: color 0.15s ease;
 }
 
-.git-tab:hover {
-  background: var(--background-modifier-hover);
+.git-tab-wrapper:hover .git-tab-header {
   color: var(--text-normal);
 }
 
-.git-tab-active {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+.git-tab-wrapper.git-tab-active .git-tab-header {
+  color: var(--text-normal);
 }
 
-.git-tab-active:hover {
-  background: var(--interactive-accent-hover);
-  color: var(--text-on-accent);
+.git-tab-label {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .git-tab-icon {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.git-tab-wrapper.git-tab-active .git-tab-icon {
+  color: var(--interactive-accent);
 }
 
 .git-tab-badge {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 1px 5px;
+  border-radius: 8px;
   font-weight: 600;
+  margin-left: 4px;
 }
 
 .git-badge-danger {
   background: rgba(255, 82, 82, 0.2);
   color: var(--color-red, #ff5252);
+}
+
+/* Content Header (Description) */
+.git-content-header {
+  padding: 12px 16px 4px 16px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+  margin-bottom: 16px;
+}
+
+.git-content-description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* Content */
@@ -1833,8 +1949,8 @@
 
 .git-badge-main,
 .git-branch-badge {
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
 }
 
 /* Warning Box */
@@ -1863,8 +1979,8 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  background: rgba(0, 150, 255, 0.08);
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.08);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.2);
   border-radius: 8px;
 }
 
@@ -1895,8 +2011,8 @@
 }
 
 .git-sync-ahead {
-  background: rgba(0, 150, 255, 0.1);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.1);
+  color: var(--saas-accent-blue);
 }
 
 .git-sync-uptodate {
@@ -1948,7 +2064,7 @@
 }
 
 .git-untracked {
-  color: #0096ff;
+  color: var(--saas-accent-blue);
 }
 
 .git-conflicted {
@@ -2179,8 +2295,8 @@
 
 .git-status-added,
 .git-status-untracked {
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
 }
 
 .git-status-deleted {
@@ -2393,8 +2509,8 @@
 /* Help Box */
 .git-help-box {
   padding: 12px 14px;
-  background: rgba(0, 150, 255, 0.05);
-  border: 1px solid rgba(0, 150, 255, 0.15);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.05);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
   border-radius: 8px;
   margin-top: 16px;
 }
@@ -2595,17 +2711,17 @@
 }
 
 .git-btn-ours {
-  background: rgba(0, 150, 255, 0.15);
-  color: #0096ff;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+  color: var(--saas-accent-blue);
 }
 
 .git-btn-ours:hover:not(:disabled) {
-  background: rgba(0, 150, 255, 0.25);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.25);
 }
 
 .git-btn-theirs {
   background: rgba(138, 43, 226, 0.15);
-  color: #8a2be2;
+  color: var(--saas-accent-purple);
 }
 
 .git-btn-theirs:hover:not(:disabled) {
@@ -2682,15 +2798,15 @@
 
 .git-init-info {
   padding: 16px;
-  background: rgba(0, 150, 255, 0.08);
-  border: 1px solid rgba(0, 150, 255, 0.2);
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.08);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.2);
   border-radius: 10px;
 }
 
 .git-init-info h4 {
   margin: 0 0 10px 0;
   font-size: 14px;
-  color: #0096ff;
+  color: var(--saas-accent-blue);
 }
 
 .git-init-info p {
@@ -2861,8 +2977,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Progress dot active state (remove scale transform) */
@@ -2912,4 +3033,111 @@
 
 .mcp-config-note-text {
   flex: 1;
+}
+
+/* ===== Responsive Styles ===== */
+@media (max-width: 600px) {
+
+  /* Wizard modal adjustments */
+  .wizard-content {
+    padding: 16px 18px;
+  }
+
+  .wizard-header {
+    padding: 16px 18px 12px;
+  }
+
+  .wizard-footer {
+    padding: 12px 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wizard-progress-dot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .wizard-progress-dot .dot-number {
+    font-size: 12px;
+  }
+
+  /* Welcome step config options */
+  .wizard-config-options-mini {
+    flex-direction: column;
+  }
+
+  .config-option-mini {
+    min-width: unset;
+  }
+
+  /* Token type options */
+  .wizard-token-type-options {
+    flex-direction: column;
+  }
+
+  /* MCP preset grid */
+  .mcp-preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .mcp-preset-card {
+    padding: 10px 8px;
+  }
+
+  .mcp-preset-icon {
+    font-size: 20px;
+  }
+
+  .mcp-preset-name {
+    font-size: 11px;
+  }
+
+  /* Server list adjustments */
+  .mcp-server-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mcp-server-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--background-modifier-border);
+  }
+
+  /* Git view adjustments */
+  .git-quick-actions {
+    justify-content: center;
+  }
+
+  .git-action-btn {
+    min-width: 70px;
+    padding: 12px 14px;
+  }
+
+  .git-tab-bar {
+    padding: 6px 10px;
+    gap: 2px;
+  }
+
+  .git-tab-wrapper {
+    padding: 6px 10px;
+    min-width: 60px;
+  }
+
+  .git-tab-label {
+    font-size: 12px;
+  }
+}
+
+/* Comparison table scroll */
+.wizard-comparison {
+  overflow-x: auto;
+}
+
+.wizard-comparison-table {
+  min-width: 400px;
+}
 }

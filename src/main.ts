@@ -49,7 +49,7 @@ export default class IntegrationAIPlugin extends Plugin {
       this.activateView(TERMINAL_VIEW_TYPE);
     });
 
-    this.addRibbonIcon(ICONS.git, "협업 (Git)", () => {
+    this.addRibbonIcon(ICONS.git, "프로젝트 관리", () => {
       this.activateView(GIT_VIEW_TYPE);
     });
 
@@ -63,8 +63,8 @@ export default class IntegrationAIPlugin extends Plugin {
 
     this.addCommand({
       id: "open-git",
-      name: "협업 (Git) 열기",
-      icon: "users",
+      name: "프로젝트 관리 열기",
+      icon: "folder-kanban",
       callback: () => this.activateView(GIT_VIEW_TYPE),
     });
 

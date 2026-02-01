@@ -25,12 +25,13 @@ interface TabConfig {
   id: TabId;
   iconName: string;
   label: string;
+  description?: string;
 }
 
 const TABS: TabConfig[] = [
-  { id: "home", iconName: "home", label: "홈" },
-  { id: "workspace", iconName: "git-branch", label: "작업 공간" },
-  { id: "review", iconName: "file-edit", label: "검토 요청" },
+  { id: "home", iconName: "home", label: "홈", description: "현재 상태 · 빠른 작업" },
+  { id: "workspace", iconName: "git-branch", label: "작업 공간", description: "브랜치 · 독립된 작업 영역" },
+  { id: "review", iconName: "file-edit", label: "검토 요청", description: "PR · 변경사항 검토 요청" },
   { id: "conflict", iconName: "alert-triangle", label: "충돌 해결" },
 ];
 
@@ -51,7 +52,7 @@ export class GitView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "협업";
+    return "프로젝트 관리";
   }
 
   getIcon(): string {
@@ -122,8 +123,8 @@ export class GitView extends ItemView {
     // 제목
     const title = header.createEl("div", { cls: "git-view-title" });
     const titleIcon = title.createEl("span", { cls: "git-view-icon" });
-    setIcon(titleIcon, "refresh-cw");
-    title.createEl("span", { text: "협업" });
+    setIcon(titleIcon, "folder-kanban");
+    title.createEl("span", { text: "프로젝트 관리" });
 
     // 헤더 액션
     const actions = header.createEl("div", { cls: "git-header-actions" });
@@ -142,6 +143,18 @@ export class GitView extends ItemView {
       refreshBtn.removeClass("git-btn-spin");
     };
 
+    // 마법사 버튼
+    const wizardBtn = actions.createEl("button", {
+      cls: "git-header-btn",
+      attr: { title: "설정 마법사" }
+    });
+    const wizardIcon = wizardBtn.createEl("span");
+    setIcon(wizardIcon, "wand");
+
+    wizardBtn.onclick = () => {
+      this.plugin.openSetupWizard();
+    };
+
     // 설정 버튼
     const settingsBtn = actions.createEl("button", {
       cls: "git-header-btn",
@@ -151,8 +164,10 @@ export class GitView extends ItemView {
     setIcon(settingsIcon, "settings");
 
     settingsBtn.onclick = () => {
-      // 설정 탭 열기
-      (this.app as any).setting.open();
+      // 플러그인 설정 탭으로 바로 이동
+      const setting = (this.app as any).setting;
+      setting.open();
+      setting.openTabById("saas-docops");
     };
   }
 
@@ -160,33 +175,51 @@ export class GitView extends ItemView {
     const tabBar = container.createEl("div", { cls: "git-tab-bar" });
 
     for (const tab of TABS) {
-      const tabBtn = tabBar.createEl("button", {
-        cls: `git-tab ${this.activeTab === tab.id ? "git-tab-active" : ""}`
+      const isActive = this.activeTab === tab.id;
+      const tabWrapper = tabBar.createEl("div", {
+        cls: `git-tab-wrapper ${isActive ? "git-tab-active" : ""}`
       });
 
-      const iconSpan = tabBtn.createEl("span", { cls: "git-tab-icon" });
-      setIcon(iconSpan, tab.iconName);
-      tabBtn.createEl("span", { cls: "git-tab-label", text: tab.label });
+      // Main tab content (Icon + Label)
+      const tabHeader = tabWrapper.createDiv({ cls: "git-tab-header" });
 
-      // 충돌 탭에 배지 표시
+      const iconSpan = tabHeader.createSpan({ cls: "git-tab-icon" });
+      setIcon(iconSpan, tab.iconName);
+      tabHeader.createSpan({ cls: "git-tab-label", text: tab.label });
+
+      // Badge for conflict tab
       if (tab.id === "conflict" && state.status?.conflicted.length) {
-        tabBtn.createEl("span", {
+        tabWrapper.addClass("has-badge");
+        tabHeader.createSpan({
           cls: "git-tab-badge git-badge-danger",
           text: String(state.status.conflicted.length)
         });
       }
 
-      tabBtn.onclick = () => {
-        this.activeTab = tab.id;
-        if (this.gitState) {
-          this.render(this.gitState.getState());
+      // Click handler on the whole wrapper
+      tabWrapper.addEventListener("click", () => {
+        if (this.activeTab !== tab.id) {
+          this.activeTab = tab.id;
+          if (this.gitState) {
+            this.render(this.gitState.getState());
+          }
         }
-      };
+      });
     }
   }
 
   private renderContent(container: HTMLElement, state: GitViewState): void {
     if (!this.gitState) return;
+
+    // Render Tab Description if available
+    const activeTabConfig = TABS.find((t) => t.id === this.activeTab);
+    if (activeTabConfig?.description) {
+      const descContainer = container.createDiv({ cls: "git-content-header" });
+      descContainer.createEl("p", {
+        text: activeTabConfig.description,
+        cls: "git-content-description"
+      });
+    }
 
     switch (this.activeTab) {
       case "home":
