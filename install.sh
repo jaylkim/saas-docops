@@ -6,6 +6,7 @@
 #   --vault <path> Specify vault path
 #   --no-open      Do not open Obsidian after install
 #   --force        Force install even if requirements missing
+#   --rebuild      Force rebuild node-pty after install
 
 set -euo pipefail
 
@@ -27,6 +28,9 @@ INTERACTIVE=true
 FORCE=false
 SPECIFIED_VAULT=""
 AUTO_OPEN=true
+REBUILD_PTY=false
+NEW_VERSION=""
+CURRENT_VERSION=""
 
 # Logging
 log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
@@ -41,14 +45,41 @@ while [[ "$#" -gt 0 ]]; do
         --force) FORCE=true ;;
         --no-open) AUTO_OPEN=false ;;
         --vault) SPECIFIED_VAULT="$2"; shift ;;
+        --rebuild) REBUILD_PTY=true ;;
         *) log_error "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
 
+check_obsidian_running() {
+    if pgrep -x "Obsidian" > /dev/null; then
+        log_warn "Obsidian is currently running."
+        log_warn "Installing while Obsidian is open may cause issues."
+        if [ "$INTERACTIVE" = true ]; then
+            read -p "    Close Obsidian and continue? [Y/n] " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+                osascript -e 'quit app "Obsidian"' 2>/dev/null || true
+                sleep 2
+                log_success "Obsidian closed."
+            else
+                log_warn "Continuing with Obsidian running (not recommended)."
+            fi
+        else
+            log_warn "Non-interactive mode: continuing with Obsidian running."
+        fi
+    fi
+}
+
 check_prerequisites() {
     log_info "Checking prerequisites..."
     local missing=()
+
+    # Python3 (required for JSON parsing)
+    if ! command -v python3 &> /dev/null; then
+        log_error "python3 is required but not found."
+        exit 1
+    fi
 
     # Node/npm
     if ! command -v node &> /dev/null; then missing+=("Node.js"); fi
@@ -93,18 +124,21 @@ check_prerequisites() {
 }
 
 install_claude_code() {
-    if command -v brew &> /dev/null; then
-        log_info "Installing Claude Code via Homebrew..."
-        brew install --cask claude-code || log_warn "Brew install failed, trying npm..."
-    fi
-
-    if ! command -v claude &> /dev/null; then
-        log_info "Installing Claude Code via npm..."
-        if npm install -g @anthropic-ai/claude-code; then
-            log_success "Claude Code installed via npm"
+    log_info "Installing Claude Code via native installer..."
+    if curl -fsSL https://claude.ai/install.sh | bash; then
+        log_success "Claude Code installed (auto-updates enabled)"
+    else
+        log_warn "Native install failed. Trying Homebrew..."
+        if command -v brew &> /dev/null; then
+            if brew install --cask claude-code; then
+                log_warn "Installed via Homebrew (manual updates required: brew upgrade claude-code)"
+            else
+                log_error "Installation failed. Visit https://code.claude.com/docs/ko/setup"
+                return 1
+            fi
         else
-            log_error "npm install failed. Try running: sudo npm install -g @anthropic-ai/claude-code"
-            # Don't exit if force is on, but likely will fail later
+            log_error "Installation failed. Visit https://code.claude.com/docs/ko/setup"
+            return 1
         fi
     fi
 }
@@ -186,22 +220,28 @@ download_release() {
         exit 1
     fi
 
-    # Extract URL safe using python
-    DOWNLOAD_URL=$(echo "$json" | python3 -c "
+    # Extract version and URL using python
+    read -r NEW_VERSION DOWNLOAD_URL < <(echo "$json" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
+version = data.get('tag_name', '').lstrip('v')
 assets = data.get('assets', [])
 platform = '$PLATFORM'
+url = ''
 for a in assets:
     if platform in a.get('name', '') and a.get('name', '').endswith('.zip'):
-        print(a.get('browser_download_url', ''))
+        url = a.get('browser_download_url', '')
         break
+print(version, url)
 ")
 
     if [ -z "$DOWNLOAD_URL" ]; then
         log_error "No asset found for $PLATFORM"
+        log_error "Check releases at: https://github.com/${REPO_OWNER}/${REPO_NAME}/releases"
         exit 1
     fi
+
+    log_info "Latest version: $NEW_VERSION"
 
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
@@ -222,23 +262,44 @@ for a in assets:
 
 install_plugin_files() {
     log_info "Installing..."
-    
+
     # Find manifest.json to locate root
     local root_file
     root_file=$(find "$EXTRACTED_DIR" -maxdepth 3 -name "manifest.json" | head -n 1)
-    
+
     if [ -z "$root_file" ]; then
         log_error "Invalid plugin package: manifest.json not found"
         exit 1
     fi
-    
+
     local source_dir
     source_dir=$(dirname "$root_file")
     local target_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID"
 
+    # Check current version
+    if [ -f "$target_dir/manifest.json" ]; then
+        CURRENT_VERSION=$(python3 -c "
+import json
+try:
+    with open('$target_dir/manifest.json', 'r') as f:
+        print(json.load(f).get('version', 'unknown'))
+except: print('unknown')
+")
+        log_info "Current version: $CURRENT_VERSION"
+
+        if [ "$CURRENT_VERSION" = "$NEW_VERSION" ] && [ "$FORCE" = false ]; then
+            log_success "Already up to date (v$CURRENT_VERSION)"
+            return 0
+        fi
+    fi
+
     if [ -d "$target_dir" ]; then
-        log_info "Backing up existing version..."
-        mv "$target_dir" "${target_dir}.bak"
+        local backup_name="${target_dir}.bak.$(date +%Y%m%d-%H%M%S)"
+        log_info "Backing up existing version to $(basename "$backup_name")..."
+        mv "$target_dir" "$backup_name"
+
+        # Keep only last 3 backups
+        ls -dt "${target_dir}.bak."* 2>/dev/null | tail -n +4 | xargs rm -rf 2>/dev/null || true
     fi
 
     mkdir -p "$target_dir"
@@ -269,19 +330,56 @@ except Exception as e:
 }
 
 check_node_pty() {
-    # Simple check for the binary
-    if [ -f "$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID/node_modules/node-pty/build/Release/pty.node" ]; then
+    local pty_binary="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID/node_modules/node-pty/build/Release/pty.node"
+    local plugin_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID"
+
+    if [ -f "$pty_binary" ] && [ "$REBUILD_PTY" = false ]; then
         log_success "node-pty binary verified."
-    else
-        log_warn "node-pty binary missing. You may need to rebuild it manually."
+        return 0
+    fi
+
+    if [ "$REBUILD_PTY" = true ] || [ ! -f "$pty_binary" ]; then
+        log_warn "node-pty binary needs rebuild."
+
+        # Get Obsidian's Electron version
+        local electron_version
+        electron_version=$(defaults read /Applications/Obsidian.app/Contents/Info.plist ElectronVersion 2>/dev/null || echo "")
+
+        if [ -z "$electron_version" ]; then
+            log_warn "Could not detect Obsidian Electron version."
+            log_warn "Run manually: cd '$plugin_dir' && npx electron-rebuild -f -w node-pty"
+            return 1
+        fi
+
+        log_info "Detected Electron version: $electron_version"
+
+        if [ "$INTERACTIVE" = true ] && [ "$REBUILD_PTY" = false ]; then
+            read -p "    Rebuild node-pty for Electron $electron_version? [Y/n] " -n 1 -r
+            echo ""
+            if [[ ! $REPLY =~ ^[Yy]$ && -n $REPLY ]]; then
+                log_warn "Skipping rebuild. Terminal may not work correctly."
+                return 1
+            fi
+        fi
+
+        log_info "Rebuilding node-pty (this may take a moment)..."
+        if (cd "$plugin_dir" && npx electron-rebuild -f -w node-pty -v "$electron_version" 2>/dev/null); then
+            log_success "node-pty rebuilt successfully."
+        else
+            log_error "Rebuild failed. Try manually:"
+            log_error "  cd '$plugin_dir'"
+            log_error "  npx electron-rebuild -f -w node-pty -v $electron_version"
+            return 1
+        fi
     fi
 }
 
 main() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  SaaS DocOps Installer (v2.0)"
+    echo "  SaaS DocOps Installer (v2.1)"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    
+
+    check_obsidian_running
     check_prerequisites
     detect_platform
     select_vault
