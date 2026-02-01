@@ -73,7 +73,7 @@ export function renderStatusPanel(
       const pullIcon = pullInfo.createEl("span", { cls: "git-sync-icon" });
       setIcon(pullIcon, GIT_ICON_NAMES.pull);
       pullInfo.createEl("span", {
-        text: `${status.behind}개 ${GIT_TERMS.behind} 있음 (가져오기 필요)`
+        text: `${status.behind}개의 새 버전 (가져오기 필요)`
       });
     }
 
@@ -82,7 +82,7 @@ export function renderStatusPanel(
       const pushIcon = pushInfo.createEl("span", { cls: "git-sync-icon" });
       setIcon(pushIcon, GIT_ICON_NAMES.push);
       pushInfo.createEl("span", {
-        text: `${status.ahead}개 ${GIT_TERMS.ahead} 있음 (올리기 필요)`
+        text: `${status.ahead}개의 작성한 버전 (업로드 필요)`
       });
     }
 
@@ -90,7 +90,7 @@ export function renderStatusPanel(
       const upToDate = syncBox.createEl("div", { cls: "git-sync-item git-sync-uptodate" });
       const successIcon = upToDate.createEl("span", { cls: "git-sync-icon" });
       setIcon(successIcon, GIT_ICON_NAMES.success);
-      upToDate.createEl("span", { text: "팀과 동기화 완료" });
+      upToDate.createEl("span", { text: "모든 내용이 최신 상태입니다" });
     }
   } else {
     const noRemote = container.createEl("div", { cls: "git-no-remote" });

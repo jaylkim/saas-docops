@@ -3,7 +3,7 @@ import type IntegrationAIPlugin from "../main";
 import { SetupWizardModal } from "../wizard";
 import { EnvironmentChecker, MCPServerConfig, MCPConfigLevel } from "../wizard/environment-checker";
 import { getAllPresets, MCPPreset } from "../mcp/presets";
-import { MCPServerAddModal, MCPServerEditModal, MCPServerCustomModal, MCPServerRemoteModal } from "./mcp-modals";
+import { MCPServerAddModal, MCPServerEditModal } from "./mcp-modals";
 import {
   MCPHealthResult,
   MCPHealthStatus,
@@ -275,28 +275,6 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     for (const preset of presets) {
       this.renderPresetCard(presetGrid, preset);
     }
-
-    // Custom server card (stdio)
-    const customCard = presetGrid.createDiv({ cls: "mcp-preset-card mcp-preset-custom" });
-    const customIcon = customCard.createSpan({ cls: "mcp-preset-icon" });
-    setIcon(customIcon, "plus");
-    customCard.createSpan({ text: "커스텀", cls: "mcp-preset-name" });
-    customCard.addEventListener("click", () => {
-      new MCPServerCustomModal(this.app, () => {
-        this.loadMcpServers(serverListContainer);
-      }, this.envChecker).open();
-    });
-
-    // Remote server card (sse/http)
-    const remoteCard = presetGrid.createDiv({ cls: "mcp-preset-card mcp-preset-remote" });
-    const remoteIcon = remoteCard.createSpan({ cls: "mcp-preset-icon" });
-    setIcon(remoteIcon, "globe");
-    remoteCard.createSpan({ text: "원격", cls: "mcp-preset-name" });
-    remoteCard.addEventListener("click", () => {
-      new MCPServerRemoteModal(this.app, () => {
-        this.loadMcpServers(serverListContainer);
-      }, this.envChecker).open();
-    });
 
     // Open settings file button
     const settingsPath = this.envChecker.getClaudeSettingsPath();

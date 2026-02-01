@@ -26,7 +26,7 @@ export function renderCommitForm(
 
   // 라벨
   const label = container.createEl("div", { cls: "git-commit-label" });
-  label.createEl("span", { text: `${GIT_ICONS.commit} 저장 메시지:` });
+  label.createEl("span", { text: `${GIT_ICONS.commit} 버전 설명:` });
 
   // 입력 컨테이너
   const inputContainer = container.createEl("div", { cls: "git-commit-input-container" });
@@ -35,7 +35,7 @@ export function renderCommitForm(
   const input = inputContainer.createEl("input", {
     cls: "git-commit-input",
     type: "text",
-    placeholder: "무엇을 변경했나요? (예: 로그인 기능 추가)"
+    placeholder: "어떤 내용을 작성했나요? (예: 문서 업데이트)"
   }) as HTMLInputElement;
 
   input.value = state.commitMessage;
@@ -57,10 +57,10 @@ export function renderCommitForm(
 
   const quickMessages = [
     "문서 업데이트",
-    "버그 수정",
-    "기능 추가",
-    "코드 정리",
-    "설정 변경"
+    "오타 수정",
+    "내용 보강",
+    "초안 작성",
+    "리뷰 반영"
   ];
 
   for (const msg of quickMessages) {
@@ -78,45 +78,11 @@ export function renderCommitForm(
   // 액션 버튼들
   const actions = container.createEl("div", { cls: "git-commit-actions" });
 
-  // 저장만 버튼
-  const commitBtn = actions.createEl("button", {
-    cls: "git-btn git-btn-secondary",
-    text: `${GIT_ICONS.commit} 저장만`
-  });
-
-  if (!state.commitMessage.trim()) {
-    commitBtn.disabled = true;
-  }
-
-  commitBtn.onclick = async () => {
-    if (!state.commitMessage.trim()) {
-      new Notice("저장 메시지를 입력하세요");
-      return;
-    }
-
-    // staged가 없으면 전체 stage
-    if (status.staged.length === 0) {
-      await gitState.stageAll();
-    }
-
-    commitBtn.disabled = true;
-    commitBtn.addClass("git-btn-loading");
-    const result = await gitState.commit();
-    commitBtn.removeClass("git-btn-loading");
-    commitBtn.disabled = false;
-
-    const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
-    new Notice(`${icon} ${result.message}`);
-
-    if (result.success) {
-      input.value = "";
-    }
-  };
-
   // 저장 & 올리기 버튼 (메인)
   const commitPushBtn = actions.createEl("button", {
-    cls: "git-btn git-btn-primary",
-    text: `${GIT_ICONS.push} 저장 & 올리기`
+    cls: "git-btn git-btn-primary git-btn-large", // Large button
+    attr: { style: "width: 100%; justify-content: center;" }, // Full width
+    text: `${GIT_ICONS.push} 버전 저장 & 업로드`
   });
 
   if (!state.commitMessage.trim()) {

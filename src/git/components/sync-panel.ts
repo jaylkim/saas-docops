@@ -23,125 +23,61 @@ export function renderSyncPanel(
     return;
   }
 
-  // 빠른 작업 버튼들
+  // 빠른 작업 버튼들 (스마트 동기화)
   const quickActions = container.createEl("div", { cls: "git-quick-actions" });
 
-  // 최신 가져오기 버튼
-  const pullBtn = quickActions.createEl("button", {
-    cls: "git-action-btn git-action-pull"
-  });
-  const pullIcon = pullBtn.createEl("span", { cls: "git-action-icon" });
-  setIcon(pullIcon, GIT_ICON_NAMES.pull);
-  pullBtn.createEl("span", { cls: "git-action-label", text: "최신 가져오기" });
+  // 1. 최신글 가져오기 (가장 높은 우선순위)
   if (status.behind > 0) {
-    pullBtn.createEl("span", { cls: "git-action-badge", text: String(status.behind) });
-  }
-  pullBtn.onclick = async () => {
-    pullBtn.disabled = true;
-    pullBtn.addClass("git-btn-loading");
-    const result = await gitState.pull();
-    pullBtn.removeClass("git-btn-loading");
-    pullBtn.disabled = false;
-    showNotice(result.success, result.message);
-  };
+    const pullBtn = quickActions.createEl("button", {
+      cls: "git-action-btn git-action-pull git-action-primary",
+      attr: { style: "width: 100%; justify-content: center;" }
+    });
+    const pullIcon = pullBtn.createEl("span", { cls: "git-action-icon" });
+    setIcon(pullIcon, GIT_ICON_NAMES.pull);
+    pullBtn.createEl("span", { cls: "git-action-label", text: `${status.behind}개의 새 버전 가져오기` });
 
-  const hasChanges = status.files.length > 0;
-  const hasMessage = state.commitMessage.trim().length > 0;
-
-  // 저장만 버튼 (커밋만)
-  const commitBtn = quickActions.createEl("button", {
-    cls: "git-action-btn git-action-commit"
-  });
-  const commitIcon = commitBtn.createEl("span", { cls: "git-action-icon" });
-  setIcon(commitIcon, GIT_ICON_NAMES.commit);
-  commitBtn.createEl("span", { cls: "git-action-label", text: "저장만" });
-
-  if (!hasChanges) {
-    commitBtn.disabled = true;
-    commitBtn.title = "변경사항이 없습니다";
-  } else if (!hasMessage) {
-    commitBtn.disabled = true;
-    commitBtn.title = "저장 메시지를 입력하세요";
+    pullBtn.onclick = async () => {
+      pullBtn.disabled = true;
+      pullBtn.addClass("git-btn-loading");
+      const result = await gitState.pull();
+      pullBtn.removeClass("git-btn-loading");
+      pullBtn.disabled = false;
+      showNotice(result.success, result.message);
+    };
+    return; // 가져오기가 있으면 다른 액션 숨김
   }
 
-  commitBtn.onclick = async () => {
-    if (!hasMessage) {
-      new Notice("저장 메시지를 입력하세요");
-      return;
-    }
+  // 2. 대기중인 업로드 (로컬 변경사항 없이 커밋만 있는 경우)
+  if (status.ahead > 0 && status.files.length === 0) {
+    const pushBtn = quickActions.createEl("button", {
+      cls: "git-action-btn git-action-push git-action-primary",
+      attr: { style: "width: 100%; justify-content: center;" }
+    });
+    const pushIcon = pushBtn.createEl("span", { cls: "git-action-icon" });
+    setIcon(pushIcon, GIT_ICON_NAMES.push);
+    pushBtn.createEl("span", { cls: "git-action-label", text: `${status.ahead}개의 버전 클라우드에 올리기` });
 
-    // 변경된 파일이 있지만 staged가 없으면 전체 stage
-    if (status.staged.length === 0 && status.files.length > 0) {
-      await gitState.stageAll();
-    }
-
-    commitBtn.disabled = true;
-    commitBtn.addClass("git-btn-loading");
-    const result = await gitState.commit();
-    commitBtn.removeClass("git-btn-loading");
-    commitBtn.disabled = false;
-    showNotice(result.success, result.message);
-  };
-
-  // 저장 & 올리기 버튼 (가장 중요한 액션)
-  const commitPushBtn = quickActions.createEl("button", {
-    cls: "git-action-btn git-action-commit-push git-action-primary"
-  });
-  const commitPushIcon = commitPushBtn.createEl("span", { cls: "git-action-icon" });
-  setIcon(commitPushIcon, GIT_ICON_NAMES.commit);
-  commitPushBtn.createEl("span", { cls: "git-action-label", text: "저장 & 올리기" });
-
-  if (!hasChanges) {
-    commitPushBtn.disabled = true;
-    commitPushBtn.title = "변경사항이 없습니다";
-  } else if (!hasMessage) {
-    commitPushBtn.disabled = true;
-    commitPushBtn.title = "저장 메시지를 입력하세요";
+    pushBtn.onclick = async () => {
+      pushBtn.disabled = true;
+      pushBtn.addClass("git-btn-loading");
+      const result = await gitState.push();
+      pushBtn.removeClass("git-btn-loading");
+      pushBtn.disabled = false;
+      showNotice(result.success, result.message);
+    };
+    return;
   }
 
-  commitPushBtn.onclick = async () => {
-    if (!hasMessage) {
-      new Notice("저장 메시지를 입력하세요");
-      return;
-    }
-
-    // 변경된 파일이 있지만 staged가 없으면 전체 stage
-    if (status.staged.length === 0 && status.files.length > 0) {
-      await gitState.stageAll();
-    }
-
-    commitPushBtn.disabled = true;
-    commitPushBtn.addClass("git-btn-loading");
-    const result = await gitState.commitAndPush();
-    commitPushBtn.removeClass("git-btn-loading");
-    commitPushBtn.disabled = false;
-    showNotice(result.success, result.message);
-  };
-
-  // 올리기만 버튼
-  const pushBtn = quickActions.createEl("button", {
-    cls: "git-action-btn git-action-push"
-  });
-  const pushIcon = pushBtn.createEl("span", { cls: "git-action-icon" });
-  setIcon(pushIcon, GIT_ICON_NAMES.push);
-  pushBtn.createEl("span", { cls: "git-action-label", text: "올리기" });
-  if (status.ahead > 0) {
-    pushBtn.createEl("span", { cls: "git-action-badge", text: String(status.ahead) });
+  // 3. 최신 상태 (변경사항은 file-list/commit-form에서 처리)
+  if (status.ahead === 0 && status.behind === 0) {
+    const syncedEl = quickActions.createEl("div", {
+      cls: "git-synced-message",
+      attr: { style: "text-align: center; color: var(--text-muted); padding: 10px;" }
+    });
+    const checkIcon = syncedEl.createEl("span");
+    setIcon(checkIcon, "check-circle");
+    syncedEl.createEl("span", { text: " 모든 내용이 클라우드와 동기화되었습니다." });
   }
-
-  if (status.ahead === 0) {
-    pushBtn.disabled = true;
-    pushBtn.title = "올릴 저장점이 없습니다";
-  }
-
-  pushBtn.onclick = async () => {
-    pushBtn.disabled = true;
-    pushBtn.addClass("git-btn-loading");
-    const result = await gitState.push();
-    pushBtn.removeClass("git-btn-loading");
-    pushBtn.disabled = false;
-    showNotice(result.success, result.message);
-  };
 
   // 원격 저장소 정보
   if (status.remoteUrl) {

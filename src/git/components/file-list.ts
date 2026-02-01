@@ -50,97 +50,29 @@ export function renderFileList(
   });
   clearBtn.onclick = () => gitState.clearSelection();
 
-  // Staged 파일 섹션
-  if (status.staged.length > 0) {
-    renderFileSection(
-      container,
-      "저장 준비됨",
-      status.staged,
-      state.selectedFiles,
-      gitState,
-      "staged"
-    );
-  }
+  // 통합된 파일 목록 생성
+  const allFiles: { file: GitFile; type: string }[] = [];
 
-  // Modified 파일 섹션
-  if (status.modified.length > 0) {
-    renderFileSection(
-      container,
-      "수정됨",
-      status.modified,
-      state.selectedFiles,
-      gitState,
-      "modified"
-    );
-  }
+  // 우선순위에 따라 정렬하여 추가
+  status.conflicted.forEach(f => allFiles.push({ file: f, type: 'conflicted' }));
+  status.staged.forEach(f => allFiles.push({ file: f, type: 'staged' }));
+  status.modified.forEach(f => allFiles.push({ file: f, type: 'modified' }));
+  status.untracked.forEach(f => allFiles.push({ file: f, type: 'untracked' }));
 
-  // Untracked 파일 섹션
-  if (status.untracked.length > 0) {
-    renderFileSection(
-      container,
-      "새 파일",
-      status.untracked,
-      state.selectedFiles,
-      gitState,
-      "untracked"
-    );
-  }
+  if (allFiles.length > 0) {
+    const listSection = container.createEl("div", { cls: "git-file-section" });
 
-  // Conflicted 파일 섹션
-  if (status.conflicted.length > 0) {
-    renderFileSectionWithIcon(
-      container,
-      "충돌",
-      GIT_ICON_NAMES.conflict,
-      status.conflicted,
-      state.selectedFiles,
-      gitState,
-      "conflicted"
-    );
+    // 섹션 헤더 (필요시 복원, 지금은 깔끔하게 목록만 표시하거나 통합 헤더 사용)
+    // listSection.createEl("div", { cls: "git-section-title", text: "변경사항" });
+
+    const list = listSection.createEl("div", { cls: "git-file-items" });
+
+    for (const item of allFiles) {
+      renderFileItem(list, item.file, state.selectedFiles, gitState);
+    }
   }
 }
 
-function renderFileSection(
-  container: HTMLElement,
-  title: string,
-  files: GitFile[],
-  selectedFiles: Set<string>,
-  gitState: GitState,
-  sectionType: string
-): void {
-  const section = container.createEl("div", { cls: `git-file-section git-section-${sectionType}` });
-
-  section.createEl("div", { cls: "git-section-title", text: `${title} (${files.length})` });
-
-  const list = section.createEl("div", { cls: "git-file-items" });
-
-  for (const file of files) {
-    renderFileItem(list, file, selectedFiles, gitState);
-  }
-}
-
-function renderFileSectionWithIcon(
-  container: HTMLElement,
-  title: string,
-  iconName: string,
-  files: GitFile[],
-  selectedFiles: Set<string>,
-  gitState: GitState,
-  sectionType: string
-): void {
-  const section = container.createEl("div", { cls: `git-file-section git-section-${sectionType}` });
-
-  const titleEl = section.createEl("div", { cls: "git-section-title" });
-  const icon = titleEl.createEl("span");
-  setIcon(icon, iconName);
-  titleEl.createEl("span", { text: ` ${title} (${files.length})` });
-
-  const list = section.createEl("div", { cls: "git-file-items" });
-
-  for (const file of files) {
-    renderFileItem(list, file, selectedFiles, gitState);
-  }
-}
 
 function renderFileItem(
   list: HTMLElement,
