@@ -31,6 +31,62 @@ AUTO_OPEN=true
 REBUILD_PTY=false
 NEW_VERSION=""
 CURRENT_VERSION=""
+TTY_AVAILABLE=false
+
+# Check if we can read from terminal
+if [ -t 0 ]; then
+    # stdin is a terminal
+    TTY_AVAILABLE=true
+elif [ -c /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    # /dev/tty is available (piped execution but terminal exists)
+    TTY_AVAILABLE=true
+fi
+
+# Safe read function that handles piped execution
+safe_read() {
+    local prompt="$1"
+    local default="$2"
+    local result=""
+
+    if [ "$TTY_AVAILABLE" = true ]; then
+        if [ -t 0 ]; then
+            read -p "$prompt" result || result=""
+        else
+            printf "%s" "$prompt" > /dev/tty
+            read result < /dev/tty 2>/dev/null || result=""
+        fi
+    fi
+
+    if [ -z "$result" ]; then
+        result="$default"
+    fi
+
+    echo "$result"
+}
+
+# Safe read for single character with -n 1
+safe_read_char() {
+    local prompt="$1"
+    local default="$2"
+    local result=""
+
+    if [ "$TTY_AVAILABLE" = true ]; then
+        if [ -t 0 ]; then
+            read -p "$prompt" -n 1 -r result || result=""
+            echo ""
+        else
+            printf "%s" "$prompt" > /dev/tty
+            read -n 1 -r result < /dev/tty 2>/dev/null || result=""
+            echo "" > /dev/tty
+        fi
+    fi
+
+    if [ -z "$result" ]; then
+        result="$default"
+    fi
+
+    echo "$result"
+}
 
 # Logging
 log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
@@ -55,10 +111,9 @@ check_obsidian_running() {
     if pgrep -x "Obsidian" > /dev/null; then
         log_warn "Obsidian is currently running."
         log_warn "Installing while Obsidian is open may cause issues."
-        if [ "$INTERACTIVE" = true ]; then
-            read -p "    Close Obsidian and continue? [Y/n] " -n 1 -r < /dev/tty
-            echo "" > /dev/tty
-            if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+        if [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ]; then
+            REPLY=$(safe_read_char "    Close Obsidian and continue? [Y/n] " "y")
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
                 osascript -e 'quit app "Obsidian"' 2>/dev/null || true
                 sleep 2
                 log_success "Obsidian closed."
@@ -89,10 +144,9 @@ check_prerequisites() {
     if ! command -v claude &> /dev/null; then
         log_warn "Claude Code CLI not found."
         
-        if [ "$INTERACTIVE" = true ]; then
-             read -p "    Install Claude Code? [Y/n] " -n 1 -r < /dev/tty
-             echo "" > /dev/tty
-             if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+        if [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ]; then
+             REPLY=$(safe_read_char "    Install Claude Code? [Y/n] " "y")
+             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 install_claude_code
              else
                 missing+=("Claude Code")
@@ -198,15 +252,16 @@ except: pass
         SELECTED_VAULT="${VAULTS[0]}"
         log_success "Found 1 vault: $SELECTED_VAULT"
     else
-        if [ "$INTERACTIVE" = false ]; then
+        if [ "$INTERACTIVE" = false ] || [ "$TTY_AVAILABLE" = false ]; then
             SELECTED_VAULT="${VAULTS[0]}"
             log_warn "Multiple vaults found. Defaulting to first: $SELECTED_VAULT"
+            log_warn "Use --vault <path> to specify a different vault."
         else
             echo "Multiple vaults found:"
             for i in "${!VAULTS[@]}"; do
                 echo "  $((i+1)). ${VAULTS[$i]}"
             done
-            read -p "Select vault [1-${#VAULTS[@]}]: " choice < /dev/tty
+            choice=$(safe_read "Select vault [1-${#VAULTS[@]}]: " "1")
             if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt ${#VAULTS[@]} ]; then
                 log_error "Invalid selection. Please enter a number between 1 and ${#VAULTS[@]}"
                 exit 1
@@ -363,10 +418,9 @@ check_node_pty() {
 
         log_info "Detected Electron version: $electron_version"
 
-        if [ "$INTERACTIVE" = true ] && [ "$REBUILD_PTY" = false ]; then
-            read -p "    Rebuild node-pty for Electron $electron_version? [Y/n] " -n 1 -r < /dev/tty
-            echo "" > /dev/tty
-            if [[ ! $REPLY =~ ^[Yy]$ && -n $REPLY ]]; then
+        if [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ] && [ "$REBUILD_PTY" = false ]; then
+            REPLY=$(safe_read_char "    Rebuild node-pty for Electron $electron_version? [Y/n] " "y")
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
                 log_warn "Skipping rebuild. Terminal may not work correctly."
                 return 1
             fi
@@ -397,10 +451,9 @@ main() {
     install_plugin_files
     check_node_pty
 
-    if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ]; then
-         read -p "Open Obsidian now? [Y/n] " -n 1 -r < /dev/tty
-         echo "" > /dev/tty
-         if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+    if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ]; then
+         REPLY=$(safe_read_char "Open Obsidian now? [Y/n] " "y")
+         if [[ $REPLY =~ ^[Yy]$ ]]; then
             open "obsidian://open?path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$SELECTED_VAULT'''))")"
          fi
     fi
