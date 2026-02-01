@@ -207,6 +207,10 @@ except: pass
                 echo "  $((i+1)). ${VAULTS[$i]}"
             done
             read -p "Select vault [1-${#VAULTS[@]}]: " choice
+            if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt ${#VAULTS[@]} ]; then
+                log_error "Invalid selection. Please enter a number between 1 and ${#VAULTS[@]}"
+                exit 1
+            fi
             SELECTED_VAULT="${VAULTS[$((choice-1))]}"
         fi
     fi
@@ -256,7 +260,10 @@ print(version, url)
     # Checksum verification (Optional placeholder)
     # log_info "Verifying checksum..." 
 
-    unzip -q "$zip_file" -d "$TEMP_DIR"
+    if ! unzip -q "$zip_file" -d "$TEMP_DIR"; then
+        log_error "Failed to extract plugin archive."
+        exit 1
+    fi
     EXTRACTED_DIR="$TEMP_DIR"
 }
 
@@ -298,8 +305,11 @@ except: print('unknown')
         log_info "Backing up existing version to $(basename "$backup_name")..."
         mv "$target_dir" "$backup_name"
 
-        # Keep only last 3 backups
-        ls -dt "${target_dir}.bak."* 2>/dev/null | tail -n +4 | xargs rm -rf 2>/dev/null || true
+        # Keep only last 3 backups (safely handle filenames with spaces)
+        find "$(dirname "$target_dir")" -maxdepth 1 -name "$(basename "$target_dir").bak.*" -type d -print0 2>/dev/null | \
+            xargs -0 ls -dt 2>/dev/null | tail -n +4 | while read -r old_backup; do
+                rm -rf "$old_backup"
+            done 2>/dev/null || true
     fi
 
     mkdir -p "$target_dir"
