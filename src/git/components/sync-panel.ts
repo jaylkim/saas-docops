@@ -30,11 +30,11 @@ export function renderSyncPanel(
   if (status.behind > 0) {
     const pullBtn = quickActions.createEl("button", {
       cls: "git-action-btn git-action-pull git-action-primary",
-      attr: { style: "width: 100%; justify-content: center;" }
+      attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pullIcon = pullBtn.createEl("span", { cls: "git-action-icon" });
     setIcon(pullIcon, GIT_ICON_NAMES.pull);
-    pullBtn.createEl("span", { cls: "git-action-label", text: `${status.behind}개의 새 버전 가져오기` });
+    pullBtn.createEl("span", { text: `${status.behind}개의 새 버전 가져오기` });
 
     pullBtn.onclick = async () => {
       pullBtn.disabled = true;
@@ -51,11 +51,11 @@ export function renderSyncPanel(
   if (status.needsInitialPush && status.files.length === 0) {
     const initialPushBtn = quickActions.createEl("button", {
       cls: "git-action-btn git-action-push git-action-primary",
-      attr: { style: "width: 100%; justify-content: center;" }
+      attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pushIcon = initialPushBtn.createEl("span", { cls: "git-action-icon" });
     setIcon(pushIcon, "cloud-upload");
-    initialPushBtn.createEl("span", { cls: "git-action-label", text: "클라우드에 첫 업로드" });
+    initialPushBtn.createEl("span", { text: "클라우드에 첫 업로드" });
 
     initialPushBtn.onclick = async () => {
       initialPushBtn.disabled = true;
@@ -72,11 +72,11 @@ export function renderSyncPanel(
   if (status.ahead > 0 && status.files.length === 0) {
     const pushBtn = quickActions.createEl("button", {
       cls: "git-action-btn git-action-push git-action-primary",
-      attr: { style: "width: 100%; justify-content: center;" }
+      attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pushIcon = pushBtn.createEl("span", { cls: "git-action-icon" });
     setIcon(pushIcon, GIT_ICON_NAMES.push);
-    pushBtn.createEl("span", { cls: "git-action-label", text: `${status.ahead}개의 버전 클라우드에 올리기` });
+    pushBtn.createEl("span", { text: `${status.ahead}개의 버전 클라우드에 올리기` });
 
     pushBtn.onclick = async () => {
       pushBtn.disabled = true;

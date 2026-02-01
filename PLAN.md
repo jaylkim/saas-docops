@@ -322,3 +322,14 @@ npm run deploy:test
   - **Smart Auto-Refresh**: Vault 이벤트(`create`, `delete`, `rename`) 및 `window.focus` 감지로 자동 새로고침 (네이티브 감각)
   - **Debouncing**: 대량 파일 변경 시 UI 버벅임 방지를 위한 `refreshDebounced` 로직 적용
 
+### 세션 11 (2025-02-01)
+- **Git 첫 Push 문제 수정**:
+  - **문제**: 빈 원격 저장소 연결 후 push 버튼이 표시되지 않음
+  - **원인**: 원격에 추적 브랜치가 없으면 `ahead: 0`으로 계산되어 버튼 미표시
+  - **해결책**:
+    - `GitStatus.needsInitialPush` 필드 추가 (원격 있음 + upstream 없음 + 커밋 있음)
+    - `git-service.ts`: `checkNeedsInitialPush()` 메서드로 상태 감지
+    - `git-service.ts`: `push()` 시 upstream 없으면 `-u origin <branch>` 자동 적용
+    - `sync-panel.ts`: "클라우드에 첫 업로드" 버튼 추가
+  - **UI 개선**: 동기화 버튼 `max-width` 제한 해제, 아이콘+텍스트 가로 배열
+
