@@ -131,26 +131,22 @@ export class ExplorerView extends ItemView {
     // 헤더 액션
     const actions = header.createEl("div", { cls: "explorer-header-actions" });
 
-    // 새 파일 버튼
+    // 새로 만들기 (파일)
     const newFileBtn = actions.createEl("button", {
       cls: "explorer-header-btn",
-      attr: { title: "새 파일" },
+      text: "새 파일",
     });
-    const newFileIcon = newFileBtn.createEl("span");
-    setIcon(newFileIcon, "file-plus");
     newFileBtn.onclick = () => {
       if (this.explorerState) {
         new CreateModal(this.app, this.explorerState, "", "file").open();
       }
     };
 
-    // 새 폴더 버튼
+    // 새로 만들기 (폴더)
     const newFolderBtn = actions.createEl("button", {
       cls: "explorer-header-btn",
-      attr: { title: "새 폴더" },
+      text: "새 폴더",
     });
-    const newFolderIcon = newFolderBtn.createEl("span");
-    setIcon(newFolderIcon, "folder-plus");
     newFolderBtn.onclick = () => {
       if (this.explorerState) {
         new CreateModal(this.app, this.explorerState, "", "folder").open();
@@ -160,10 +156,8 @@ export class ExplorerView extends ItemView {
     // 모두 접기 버튼
     const collapseBtn = actions.createEl("button", {
       cls: "explorer-header-btn",
-      attr: { title: "모두 접기" },
+      text: "접기",
     });
-    const collapseIcon = collapseBtn.createEl("span");
-    setIcon(collapseIcon, "chevrons-up");
     collapseBtn.onclick = async () => {
       await this.explorerState?.collapseAll();
     };
@@ -171,10 +165,8 @@ export class ExplorerView extends ItemView {
     // 새로고침 버튼
     const refreshBtn = actions.createEl("button", {
       cls: "explorer-header-btn",
-      attr: { title: "새로고침" },
+      text: "새로고침",
     });
-    const refreshIcon = refreshBtn.createEl("span");
-    setIcon(refreshIcon, "refresh-cw");
     refreshBtn.onclick = async () => {
       refreshBtn.addClass("explorer-btn-spin");
       await this.explorerState?.refresh();
