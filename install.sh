@@ -7,6 +7,9 @@
 #   --no-open      Do not open Obsidian after install
 #   --force        Force install even if requirements missing
 #   --rebuild      Force rebuild node-pty after install
+#   --all          Install to all detected Obsidian vaults
+#   --sync         Update previously installed vaults
+#   --list         Show installed vault list
 
 set -euo pipefail
 
@@ -32,6 +35,12 @@ REBUILD_PTY=false
 NEW_VERSION=""
 CURRENT_VERSION=""
 TTY_AVAILABLE=false
+INSTALL_ALL=false
+SYNC_MODE=false
+LIST_MODE=false
+
+# Install tracking
+INSTALL_RECORD="$HOME/.saas-docops/installed.json"
 
 # Check if we can read from terminal
 if [ -t 0 ]; then
@@ -102,6 +111,9 @@ while [[ "$#" -gt 0 ]]; do
         --no-open) AUTO_OPEN=false ;;
         --vault) SPECIFIED_VAULT="$2"; shift ;;
         --rebuild) REBUILD_PTY=true ;;
+        --all) INSTALL_ALL=true ;;
+        --sync) SYNC_MODE=true ;;
+        --list) LIST_MODE=true ;;
         *) log_error "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
@@ -213,7 +225,7 @@ detect_platform() {
     log_success "Platform: $PLATFORM"
 }
 
-# Vault Selection
+# Vault Selection (VAULTS array must be populated before calling)
 select_vault() {
     if [ -n "$SPECIFIED_VAULT" ]; then
         if [ ! -d "$SPECIFIED_VAULT" ]; then
@@ -225,32 +237,9 @@ select_vault() {
         return
     fi
 
-    log_info "Finding vaults..."
-    local config="$HOME/Library/Application Support/obsidian/obsidian.json"
-    if [ ! -f "$config" ]; then
-        log_error "Obsidian config not found."
-        exit 1
-    fi
-
-    # Parse vaults using python3 (reliable)
-    VAULTS=()
-    while IFS= read -r line; do
-        if [ -d "$line" ]; then VAULTS+=("$line"); fi
-    done < <(python3 -c "
-import json, sys
-try:
-    with open('$config', 'r') as f:
-        data = json.load(f)
-    print('\n'.join([v.get('path', '') for v in data.get('vaults', {}).values() if v.get('path')]))
-except: pass
-")
-
-    if [ ${#VAULTS[@]} -eq 0 ]; then
-        log_error "No vaults found."
-        exit 1
-    elif [ ${#VAULTS[@]} -eq 1 ]; then
+    if [ ${#VAULTS[@]} -eq 1 ]; then
         SELECTED_VAULT="${VAULTS[0]}"
-        log_success "Found 1 vault: $SELECTED_VAULT"
+        log_success "Using vault: $SELECTED_VAULT"
     else
         if [ "$INTERACTIVE" = false ] || [ "$TTY_AVAILABLE" = false ]; then
             SELECTED_VAULT="${VAULTS[0]}"
@@ -271,6 +260,125 @@ except: pass
     fi
 }
 
+# Record installation to tracking file
+record_installation() {
+    local vault="$1"
+    mkdir -p "$HOME/.saas-docops"
+    VAULT="$vault" RECORD="$INSTALL_RECORD" python3 -c "
+import json, os
+path = os.getenv('RECORD')
+vault = os.getenv('VAULT')
+try:
+    data = json.load(open(path)) if os.path.exists(path) else {'vaults': [], 'lastUpdated': ''}
+except: data = {'vaults': [], 'lastUpdated': ''}
+if vault not in data['vaults']:
+    data['vaults'].append(vault)
+from datetime import datetime
+data['lastUpdated'] = datetime.now().isoformat()
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+"
+}
+
+# Get list of installed vaults from tracking file
+get_installed_vaults() {
+    if [ ! -f "$INSTALL_RECORD" ]; then
+        echo ""
+        return
+    fi
+    RECORD="$INSTALL_RECORD" python3 -c "
+import json, os
+path = os.getenv('RECORD')
+try:
+    data = json.load(open(path))
+    for v in data.get('vaults', []):
+        if os.path.isdir(v):
+            print(v)
+except: pass
+"
+}
+
+# List installed vaults
+list_installed_vaults() {
+    log_info "Installed vaults:"
+    local count=0
+    while IFS= read -r vault; do
+        if [ -n "$vault" ]; then
+            local plugin_dir="$vault/.obsidian/plugins/$PLUGIN_ID"
+            if [ -d "$plugin_dir" ]; then
+                local version
+                version=$(MANIFEST="$plugin_dir/manifest.json" python3 -c "
+import json, os
+try:
+    with open(os.getenv('MANIFEST'), 'r') as f:
+        print(json.load(f).get('version', 'unknown'))
+except: print('unknown')
+")
+                echo "  ✓ $vault (v$version)"
+            else
+                echo "  ○ $vault (not installed)"
+            fi
+            ((count++))
+        fi
+    done < <(get_installed_vaults)
+
+    if [ $count -eq 0 ]; then
+        echo "  (No vaults recorded)"
+    fi
+    echo ""
+    log_info "Total: $count vault(s)"
+}
+
+# Install to all detected vaults
+install_to_all_vaults() {
+    log_info "Installing to all vaults..."
+    local success=0
+    local failed=0
+
+    for vault in "${VAULTS[@]}"; do
+        echo ""
+        log_info "━━━ Installing to: $(basename "$vault") ━━━"
+        SELECTED_VAULT="$vault"
+        if install_plugin_files; then
+            check_node_pty || true
+            record_installation "$vault"
+            ((success++))
+        else
+            log_error "Failed to install to $vault"
+            ((failed++))
+        fi
+    done
+
+    echo ""
+    log_success "Installation complete: $success succeeded, $failed failed"
+}
+
+# Sync (update) previously installed vaults
+sync_installed_vaults() {
+    log_info "Syncing installed vaults..."
+    local synced=0
+    local failed=0
+    local skipped=0
+
+    while IFS= read -r vault; do
+        if [ -n "$vault" ] && [ -d "$vault" ]; then
+            echo ""
+            log_info "━━━ Syncing: $(basename "$vault") ━━━"
+            SELECTED_VAULT="$vault"
+            if install_plugin_files; then
+                check_node_pty || true
+                ((synced++))
+            else
+                log_warn "Skipped $vault (already up to date or error)"
+                ((skipped++))
+            fi
+        fi
+    done < <(get_installed_vaults)
+
+    echo ""
+    log_success "Sync complete: $synced updated, $skipped skipped"
+}
+
 download_release() {
     log_info "Fetching release info..."
     local json
@@ -280,12 +388,23 @@ download_release() {
     fi
 
     # Extract version and URL using python
+    # Extract version and URL using python
     read -r NEW_VERSION DOWNLOAD_URL < <(echo "$json" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
+import json, sys, os
+try:
+    data = json.load(sys.stdin)
+except json.JSONDecodeError:
+    print('', '')
+    sys.exit(0)
+
+if 'message' in data and 'API rate limit' in data.get('message', ''):
+    sys.stderr.write('GitHub API rate limit exceeded.\n')
+    print('', '')
+    sys.exit(0)
+
 version = data.get('tag_name', '').lstrip('v')
 assets = data.get('assets', [])
-platform = '$PLATFORM'
+platform = os.getenv('PLATFORM', '')
 url = ''
 for a in assets:
     if platform in a.get('name', '') and a.get('name', '').endswith('.zip'):
@@ -295,8 +414,12 @@ print(version, url)
 ")
 
     if [ -z "$DOWNLOAD_URL" ]; then
-        log_error "No asset found for $PLATFORM"
-        log_error "Check releases at: https://github.com/${REPO_OWNER}/${REPO_NAME}/releases"
+        log_error "Failed to resolve download URL for $PLATFORM"
+        if echo "$json" | grep -q "API rate limit"; then
+             log_error "GitHub API rate limit exceeded. Please try again later."
+        else
+             log_error "Response invalid or no asset found. Check releases at: https://github.com/${REPO_OWNER}/${REPO_NAME}/releases"
+        fi
         exit 1
     fi
 
@@ -340,10 +463,10 @@ install_plugin_files() {
 
     # Check current version
     if [ -f "$target_dir/manifest.json" ]; then
-        CURRENT_VERSION=$(python3 -c "
-import json
+        CURRENT_VERSION=$(MANIFEST="$target_dir/manifest.json" python3 -c "
+import json, os
 try:
-    with open('$target_dir/manifest.json', 'r') as f:
+    with open(os.getenv('MANIFEST'), 'r') as f:
         print(json.load(f).get('version', 'unknown'))
 except: print('unknown')
 ")
@@ -375,14 +498,16 @@ except: print('unknown')
     local config="$SELECTED_VAULT/.obsidian/community-plugins.json"
     if [ ! -f "$config" ]; then echo "[]" > "$config"; fi
     
-    python3 -c "
-import json
+    CONFIG="$config" PLUGIN="$PLUGIN_ID" python3 -c "
+import json, os
+config_path = os.getenv('CONFIG')
+plugin_id = os.getenv('PLUGIN')
 try:
-    with open('$config', 'r+') as f:
+    with open(config_path, 'r+') as f:
         try: data = json.load(f)
         except: data = []
-        if '$PLUGIN_ID' not in data:
-            data.append('$PLUGIN_ID')
+        if plugin_id not in data:
+            data.append(plugin_id)
             f.seek(0)
             json.dump(data, f, indent=2)
             f.truncate()
@@ -416,6 +541,14 @@ check_node_pty() {
             return 1
         fi
 
+        # Check for build tools
+        if ! command -v make &> /dev/null || (! command -v cc &> /dev/null && ! command -v clang &> /dev/null); then
+            log_error "Build tools (make, compiler) not found."
+            log_warn "Please run 'xcode-select --install' to install Command Line Tools."
+            log_warn "Or install manually. Rebuild skipped."
+            return 1
+        fi
+
         log_info "Detected Electron version: $electron_version"
 
         if [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ] && [ "$REBUILD_PTY" = false ]; then
@@ -443,19 +576,65 @@ main() {
     echo "  SaaS DocOps Installer (v2.1)"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+    # Handle --list mode (no installation needed)
+    if [ "$LIST_MODE" = true ]; then
+        list_installed_vaults
+        exit 0
+    fi
+
     check_obsidian_running
     check_prerequisites
     detect_platform
-    select_vault
-    download_release
-    install_plugin_files
-    check_node_pty
 
-    if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ]; then
-         REPLY=$(safe_read_char "Open Obsidian now? [Y/n] " "y")
-         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            open "obsidian://open?path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$SELECTED_VAULT'''))")"
-         fi
+    # Load all vaults first (needed for --all and --sync)
+    log_info "Finding vaults..."
+    local config="$HOME/Library/Application Support/obsidian/obsidian.json"
+    if [ ! -f "$config" ]; then
+        log_error "Obsidian config not found."
+        exit 1
+    fi
+
+    VAULTS=()
+    while IFS= read -r line; do
+        if [ -d "$line" ]; then VAULTS+=("$line"); fi
+    done < <(CONFIG="$config" python3 -c "
+import json, sys, os
+config_path = os.getenv('CONFIG')
+try:
+    with open(config_path, 'r') as f:
+        data = json.load(f)
+    print('\n'.join([v.get('path', '') for v in data.get('vaults', {}).values() if v.get('path')]))
+except: pass
+")
+
+    if [ ${#VAULTS[@]} -eq 0 ]; then
+        log_error "No vaults found."
+        exit 1
+    fi
+
+    log_success "Found ${#VAULTS[@]} vault(s)"
+
+    # Download release (needed for all modes)
+    download_release
+
+    # Handle different modes
+    if [ "$INSTALL_ALL" = true ]; then
+        install_to_all_vaults
+    elif [ "$SYNC_MODE" = true ]; then
+        sync_installed_vaults
+    else
+        # Normal single vault installation
+        select_vault
+        install_plugin_files
+        check_node_pty
+        record_installation "$SELECTED_VAULT"
+
+        if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ]; then
+             REPLY=$(safe_read_char "Open Obsidian now? [Y/n] " "y")
+             if [[ $REPLY =~ ^[Yy]$ ]]; then
+                 open "obsidian://open?path=$(VAULT="$SELECTED_VAULT" python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.getenv('VAULT')))")"
+             fi
+        fi
     fi
 }
 
