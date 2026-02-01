@@ -56,8 +56,8 @@ check_obsidian_running() {
         log_warn "Obsidian is currently running."
         log_warn "Installing while Obsidian is open may cause issues."
         if [ "$INTERACTIVE" = true ]; then
-            read -p "    Close Obsidian and continue? [Y/n] " -n 1 -r
-            echo ""
+            read -p "    Close Obsidian and continue? [Y/n] " -n 1 -r < /dev/tty
+            echo "" > /dev/tty
             if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
                 osascript -e 'quit app "Obsidian"' 2>/dev/null || true
                 sleep 2
@@ -90,8 +90,8 @@ check_prerequisites() {
         log_warn "Claude Code CLI not found."
         
         if [ "$INTERACTIVE" = true ]; then
-             read -p "    Install Claude Code? [Y/n] " -n 1 -r
-             echo ""
+             read -p "    Install Claude Code? [Y/n] " -n 1 -r < /dev/tty
+             echo "" > /dev/tty
              if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
                 install_claude_code
              else
@@ -206,7 +206,7 @@ except: pass
             for i in "${!VAULTS[@]}"; do
                 echo "  $((i+1)). ${VAULTS[$i]}"
             done
-            read -p "Select vault [1-${#VAULTS[@]}]: " choice
+            read -p "Select vault [1-${#VAULTS[@]}]: " choice < /dev/tty
             if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt ${#VAULTS[@]} ]; then
                 log_error "Invalid selection. Please enter a number between 1 and ${#VAULTS[@]}"
                 exit 1
@@ -364,8 +364,8 @@ check_node_pty() {
         log_info "Detected Electron version: $electron_version"
 
         if [ "$INTERACTIVE" = true ] && [ "$REBUILD_PTY" = false ]; then
-            read -p "    Rebuild node-pty for Electron $electron_version? [Y/n] " -n 1 -r
-            echo ""
+            read -p "    Rebuild node-pty for Electron $electron_version? [Y/n] " -n 1 -r < /dev/tty
+            echo "" > /dev/tty
             if [[ ! $REPLY =~ ^[Yy]$ && -n $REPLY ]]; then
                 log_warn "Skipping rebuild. Terminal may not work correctly."
                 return 1
@@ -398,8 +398,8 @@ main() {
     check_node_pty
 
     if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ]; then
-         read -p "Open Obsidian now? [Y/n] " -n 1 -r
-         echo ""
+         read -p "Open Obsidian now? [Y/n] " -n 1 -r < /dev/tty
+         echo "" > /dev/tty
          if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
             open "obsidian://open?path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$SELECTED_VAULT'''))")"
          fi
