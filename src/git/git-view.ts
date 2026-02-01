@@ -29,7 +29,7 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: "home", iconName: "home", label: "홈", description: "현재 상태 · 빠른 작업" },
+  { id: "home", iconName: "home", label: "홈" },
   { id: "workspace", iconName: "git-branch", label: "작업 공간", description: "브랜치 · 독립된 작업 영역" },
   { id: "review", iconName: "file-edit", label: "검토 요청", description: "PR · 변경사항 검토 요청" },
   { id: "conflict", iconName: "alert-triangle", label: "충돌 해결" },
