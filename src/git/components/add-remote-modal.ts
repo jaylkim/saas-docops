@@ -40,17 +40,17 @@ export class AddRemoteModal extends Modal {
     const githubExample = examples.createEl("div", { cls: "git-remote-example" });
     const githubIcon = githubExample.createEl("span", { cls: "git-remote-provider-icon" });
     setIcon(githubIcon, "github");
-    githubExample.createEl("code", { text: "https://github.com/사용자/저장소.git" });
+    githubExample.createEl("code", { text: "git@github.com:사용자/저장소.git" });
 
     const gitlabExample = examples.createEl("div", { cls: "git-remote-example" });
     const gitlabIcon = gitlabExample.createEl("span", { cls: "git-remote-provider-icon" });
     setIcon(gitlabIcon, "gitlab");
-    gitlabExample.createEl("code", { text: "https://gitlab.com/사용자/저장소.git" });
+    gitlabExample.createEl("code", { text: "git@gitlab.com:사용자/저장소.git" });
 
-    const sshExample = examples.createEl("div", { cls: "git-remote-example" });
-    const sshIcon = sshExample.createEl("span", { cls: "git-remote-provider-icon" });
-    setIcon(sshIcon, "key");
-    sshExample.createEl("code", { text: "git@github.com:사용자/저장소.git" });
+    const bitbucketExample = examples.createEl("div", { cls: "git-remote-example" });
+    const bitbucketIcon = bitbucketExample.createEl("span", { cls: "git-remote-provider-icon" });
+    setIcon(bitbucketIcon, "box");
+    bitbucketExample.createEl("code", { text: "git@bitbucket.org:사용자/저장소.git" });
 
     // Input section
     const inputSection = contentEl.createEl("div", { cls: "git-remote-input-section" });
@@ -60,16 +60,16 @@ export class AddRemoteModal extends Modal {
       cls: "git-remote-url-input",
       attr: {
         type: "text",
-        placeholder: "https://github.com/사용자/저장소.git",
+        placeholder: "git@github.com:사용자/저장소.git",
         spellcheck: "false",
       },
     });
 
     // Hint
     const hint = inputSection.createEl("p", { cls: "git-remote-hint" });
-    hint.createEl("span", { text: "💡 GitHub에서 저장소를 만들고 " });
-    hint.createEl("strong", { text: "Code" });
-    hint.createEl("span", { text: " 버튼을 눌러 URL을 복사하세요." });
+    hint.createEl("span", { text: "💡 저장소 페이지에서 " });
+    hint.createEl("strong", { text: "Code → SSH" });
+    hint.createEl("span", { text: " 탭의 URL을 복사하세요." });
 
     // Actions
     const actions = contentEl.createEl("div", { cls: "git-modal-actions" });
