@@ -59,8 +59,11 @@ Obsidian에서 Claude Code를 GUI로 관리하는 비개발자 친화 플러그�
 터미널에서 아래 명령어를 실행하세요:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/jaylkim/saas-docops/main/install.sh | bash
+# 모든 Obsidian vault에 한번에 설치
+curl -sSL https://raw.githubusercontent.com/jaylkim/saas-docops/main/install.sh | bash -s -- --all
 ```
+
+단일 vault에만 설치하려면 `--all` 플래그를 제거하세요.
 
 설치 스크립트가 자동으로:
 - Claude Code CLI 설치 여부 확인 (없으면 설치 제안)
@@ -86,7 +89,24 @@ curl -sSL ... | bash -s -- --rebuild
 
 # 요구사항 무시하고 설치
 curl -sSL ... | bash -s -- --force
+
+# 모든 vault에 한번에 설치
+curl -sSL ... | bash -s -- --all --yes
+
+# 이전에 설치한 vault들 업데이트
+curl -sSL ... | bash -s -- --sync --yes
+
+# 설치된 vault 목록 확인
+curl -sSL ... | bash -s -- --list
 ```
+
+### 다중 Vault 관리
+
+플러그인을 한 번 설치하면 Obsidian 설정에서 다른 vault에도 쉽게 설치할 수 있습니다:
+
+1. 설정 > SaaS DocOps > "다른 Vault 관리" 섹션
+2. 감지된 vault 목록에서 "설치" 버튼 클릭
+3. 또는 "모두 설치" 버튼으로 일괄 설치
 
 ### 수동 설치
 
@@ -201,7 +221,8 @@ src/
 ├── explorer/            # 파일 탐색기
 ├── wizard/              # 온보딩 마법사 (7단계)
 ├── settings/            # 설정 탭
-└── mcp/                 # MCP 프리셋 + Health Check
+├── mcp/                 # MCP 프리셋 + Health Check
+└── vault-manager/       # 다중 Vault 설치 관리
 ```
 
 ### MCP 설정 파일 위치

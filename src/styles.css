@@ -1683,6 +1683,129 @@
   pointer-events: none;
 }
 
+/* ===== Vault Manager Styles ===== */
+.vault-manager-list {
+  margin-top: 12px;
+}
+
+.vault-manager-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--text-muted);
+}
+
+.vault-manager-loading-icon {
+  animation: mcp-pulse 1.5s ease-in-out infinite;
+}
+
+.vault-manager-error,
+.vault-manager-empty {
+  padding: 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.vault-manager-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.vault-manager-vault-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vault-manager-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.vault-manager-item:hover {
+  border-color: var(--background-modifier-border-hover);
+}
+
+.vault-manager-status-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.vault-manager-item .vault-manager-status-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.vault-manager-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vault-manager-name {
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.vault-manager-current-badge {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.vault-manager-path {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.vault-manager-version {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.1);
+  color: var(--text-accent);
+  align-self: flex-start;
+}
+
+.vault-manager-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vault-manager-current-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* ===== Git View Styles ===== */
 
 /* Container */

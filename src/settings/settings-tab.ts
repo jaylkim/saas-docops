@@ -19,6 +19,7 @@ import {
   formatReleaseDate,
   type UpdateCheckResult,
 } from "../updater";
+import { VaultManager, VaultInfo } from "../vault-manager";
 
 /**
  * Settings Tab for SaaS DocOps
@@ -30,6 +31,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
   private isCheckingHealth: boolean = false;
   private updateCheckResult: UpdateCheckResult | null = null;
   private isCheckingUpdate: boolean = false;
+  private vaultManager: VaultManager | null = null;
+  private isInstallingToVault: boolean = false;
 
   constructor(app: App, plugin: IntegrationAIPlugin) {
     super(app, plugin);
@@ -67,6 +70,9 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Terminal Settings Section
     this.renderTerminalSection(containerEl);
+
+    // Vault Manager Section
+    this.renderVaultManagerSection(containerEl);
 
     // MCP Settings Section
     this.renderMcpSection(containerEl);
@@ -369,6 +375,230 @@ export class IntegrationSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+  }
+
+  private renderVaultManagerSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: "integration-settings-section" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "folder-sync");
+    header.createSpan({ text: " 다른 Vault 관리" });
+
+    section.createEl("p", {
+      text: "한 번 설치한 플러그인을 다른 Obsidian vault에도 설치할 수 있습니다.",
+      cls: "setting-item-description",
+    });
+
+    // Vault list container
+    const vaultListContainer = section.createDiv({ cls: "vault-manager-list" });
+    this.loadVaultList(vaultListContainer);
+  }
+
+  private async loadVaultList(container: HTMLElement): Promise<void> {
+    container.empty();
+
+    // Initialize VaultManager if needed
+    const vaultPath = (this.app.vault.adapter as { basePath?: string }).basePath;
+    const pluginDir = this.plugin.manifest.dir;
+
+    if (!vaultPath || !pluginDir) {
+      container.createEl("p", {
+        text: "Vault 정보를 가져올 수 없습니다.",
+        cls: "vault-manager-error",
+      });
+      return;
+    }
+
+    const fullPluginPath = require("path").join(vaultPath, pluginDir);
+    this.vaultManager = new VaultManager(vaultPath, fullPluginPath);
+
+    // Loading state
+    const loadingDiv = container.createDiv({ cls: "vault-manager-loading" });
+    const loadingIcon = loadingDiv.createSpan({ cls: "vault-manager-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingDiv.createSpan({ text: " Vault 목록을 불러오는 중..." });
+
+    try {
+      const vaults = await this.vaultManager.getVaults();
+      container.empty();
+
+      if (vaults.length === 0) {
+        container.createEl("p", {
+          text: "감지된 Vault가 없습니다.",
+          cls: "vault-manager-empty",
+        });
+        return;
+      }
+
+      // Summary
+      const summary = await this.vaultManager.getSummary();
+      const summaryDiv = container.createDiv({ cls: "vault-manager-summary" });
+      summaryDiv.createSpan({
+        text: `총 ${summary.total}개 Vault: ${summary.installed}개 설치됨, ${summary.notInstalled}개 미설치`,
+      });
+
+      // Install all button (only show if there are uninstalled vaults)
+      if (summary.notInstalled > 0) {
+        const installAllBtn = summaryDiv.createEl("button", {
+          cls: "mcp-btn mcp-btn-primary",
+        });
+        const installAllIcon = installAllBtn.createSpan({ cls: "mcp-btn-icon" });
+        setIcon(installAllIcon, "download");
+        installAllBtn.createSpan({ text: " 모두 설치" });
+        installAllBtn.addEventListener("click", async () => {
+          await this.installToAllVaults(container);
+        });
+      }
+
+      // Vault list
+      const listDiv = container.createDiv({ cls: "vault-manager-vault-list" });
+      for (const vault of vaults) {
+        this.renderVaultItem(listDiv, vault, container);
+      }
+    } catch (e) {
+      container.empty();
+      console.error("[Settings] Failed to load vaults:", e);
+      container.createEl("p", {
+        text: "Vault 목록을 불러오는데 실패했습니다.",
+        cls: "vault-manager-error",
+      });
+    }
+  }
+
+  private renderVaultItem(
+    container: HTMLElement,
+    vault: VaultInfo,
+    parentContainer: HTMLElement
+  ): void {
+    const item = container.createDiv({ cls: "vault-manager-item" });
+
+    // Status icon
+    const statusIcon = item.createSpan({ cls: "vault-manager-status-icon" });
+    if (vault.isCurrent) {
+      setIcon(statusIcon, "home");
+      statusIcon.setAttribute("title", "현재 Vault");
+    } else if (vault.isInstalled) {
+      setIcon(statusIcon, "check-circle");
+      statusIcon.setAttribute("title", "설치됨");
+    } else {
+      setIcon(statusIcon, "circle");
+      statusIcon.setAttribute("title", "미설치");
+    }
+
+    // Vault info
+    const infoDiv = item.createDiv({ cls: "vault-manager-info" });
+    const nameSpan = infoDiv.createSpan({ cls: "vault-manager-name" });
+    nameSpan.textContent = vault.name;
+
+    if (vault.isCurrent) {
+      nameSpan.createSpan({ text: " (현재)", cls: "vault-manager-current-badge" });
+    }
+
+    const pathSpan = infoDiv.createEl("code", {
+      text: vault.path,
+      cls: "vault-manager-path",
+    });
+
+    // Version badge if installed
+    if (vault.isInstalled && vault.installedVersion) {
+      infoDiv.createSpan({
+        text: `v${vault.installedVersion}`,
+        cls: "vault-manager-version",
+      });
+    }
+
+    // Actions
+    const actionsDiv = item.createDiv({ cls: "vault-manager-actions" });
+
+    if (vault.isCurrent) {
+      // Current vault - no actions needed
+      actionsDiv.createSpan({
+        text: "현재 사용 중",
+        cls: "vault-manager-current-text",
+      });
+    } else if (vault.isInstalled) {
+      // Update button
+      const updateBtn = actionsDiv.createEl("button", {
+        cls: "mcp-btn mcp-btn-sm",
+      });
+      const updateIcon = updateBtn.createSpan({ cls: "mcp-btn-icon" });
+      setIcon(updateIcon, "refresh-cw");
+      updateBtn.createSpan({ text: " 업데이트" });
+      updateBtn.addEventListener("click", async () => {
+        await this.installToSingleVault(vault.path, parentContainer, true);
+      });
+    } else {
+      // Install button
+      const installBtn = actionsDiv.createEl("button", {
+        cls: "mcp-btn mcp-btn-sm mcp-btn-primary",
+      });
+      const installIcon = installBtn.createSpan({ cls: "mcp-btn-icon" });
+      setIcon(installIcon, "download");
+      installBtn.createSpan({ text: " 설치" });
+      installBtn.addEventListener("click", async () => {
+        await this.installToSingleVault(vault.path, parentContainer, false);
+      });
+    }
+  }
+
+  private async installToSingleVault(
+    vaultPath: string,
+    container: HTMLElement,
+    isUpdate: boolean
+  ): Promise<void> {
+    if (this.isInstallingToVault || !this.vaultManager) return;
+
+    this.isInstallingToVault = true;
+    const path = require("path");
+    const vaultName = path.basename(vaultPath);
+
+    new Notice(`${isUpdate ? "업데이트" : "설치"} 중: ${vaultName}...`);
+
+    try {
+      const result = await this.vaultManager.installToVault(vaultPath);
+
+      if (result.success) {
+        new Notice(
+          `${vaultName}에 ${isUpdate ? "업데이트" : "설치"} 완료 (v${result.installedVersion})`
+        );
+        // Refresh the list
+        await this.loadVaultList(container);
+      } else {
+        new Notice(`${isUpdate ? "업데이트" : "설치"} 실패: ${result.error}`);
+      }
+    } catch (e) {
+      console.error("[Settings] Install failed:", e);
+      new Notice(`${isUpdate ? "업데이트" : "설치"} 실패`);
+    } finally {
+      this.isInstallingToVault = false;
+    }
+  }
+
+  private async installToAllVaults(container: HTMLElement): Promise<void> {
+    if (this.isInstallingToVault || !this.vaultManager) return;
+
+    this.isInstallingToVault = true;
+    new Notice("모든 Vault에 설치 중...");
+
+    try {
+      const result = await this.vaultManager.installToAllVaults();
+
+      if (result.failed.length === 0) {
+        new Notice(`${result.succeeded.length}개 Vault에 설치 완료`);
+      } else {
+        new Notice(
+          `${result.succeeded.length}개 성공, ${result.failed.length}개 실패`
+        );
+      }
+
+      // Refresh the list
+      await this.loadVaultList(container);
+    } catch (e) {
+      console.error("[Settings] Install all failed:", e);
+      new Notice("일괄 설치 실패");
+    } finally {
+      this.isInstallingToVault = false;
+    }
   }
 
   private renderMcpSection(containerEl: HTMLElement): void {
