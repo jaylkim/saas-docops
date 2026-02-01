@@ -2,6 +2,7 @@ import { Plugin, WorkspaceLeaf } from "obsidian";
 import {
   TERMINAL_VIEW_TYPE,
   GIT_VIEW_TYPE,
+  EXPLORER_VIEW_TYPE,
   DEFAULT_SETTINGS,
   ICONS,
   type IntegrationSettings,
@@ -10,6 +11,7 @@ import { TerminalView, initElectronBridge } from "./terminal";
 import { IntegrationSettingsTab } from "./settings/settings-tab";
 import { SetupWizardModal, EnvironmentChecker } from "./wizard";
 import { GitView } from "./git";
+import { ExplorerView } from "./explorer";
 
 // Import styles (injected via esbuild)
 import "./styles.css";
@@ -43,6 +45,7 @@ export default class IntegrationAIPlugin extends Plugin {
     // 3. View 등록
     this.registerView(TERMINAL_VIEW_TYPE, (leaf) => new TerminalView(leaf, this));
     this.registerView(GIT_VIEW_TYPE, (leaf) => new GitView(leaf, this));
+    this.registerView(EXPLORER_VIEW_TYPE, (leaf) => new ExplorerView(leaf, this));
 
     // 4. 리본 아이콘 추가
     this.addRibbonIcon(ICONS.terminal, "터미널 열기", () => {
@@ -51,6 +54,10 @@ export default class IntegrationAIPlugin extends Plugin {
 
     this.addRibbonIcon(ICONS.git, "프로젝트 관리", () => {
       this.activateView(GIT_VIEW_TYPE);
+    });
+
+    this.addRibbonIcon(ICONS.explorer, "파일 탐색기", () => {
+      this.activateView(EXPLORER_VIEW_TYPE);
     });
 
     // 5. 명령어 등록
@@ -66,6 +73,13 @@ export default class IntegrationAIPlugin extends Plugin {
       name: "프로젝트 관리 열기",
       icon: "folder-kanban",
       callback: () => this.activateView(GIT_VIEW_TYPE),
+    });
+
+    this.addCommand({
+      id: "open-explorer",
+      name: "파일 탐색기 열기",
+      icon: "folder-tree",
+      callback: () => this.activateView(EXPLORER_VIEW_TYPE),
     });
 
     this.addCommand({

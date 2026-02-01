@@ -5,6 +5,7 @@
 // View Types
 export const TERMINAL_VIEW_TYPE = "integration-terminal-view";
 export const GIT_VIEW_TYPE = "integration-git-view";
+export const EXPLORER_VIEW_TYPE = "integration-explorer-view";
 
 // Plugin Info
 export const PLUGIN_ID = "saas-docops";
@@ -49,4 +50,5 @@ export const ICONS = {
   slack: "message-square",
   confluence: "file-text",
   git: "users",
+  explorer: "folder-tree",
 } as const;

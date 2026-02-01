@@ -3452,3 +3452,339 @@
   height: 1em;
   vertical-align: middle;
 }
+
+/* ===== Explorer View Styles ===== */
+
+/* Container */
+.explorer-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+/* Header */
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+}
+
+.explorer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.explorer-title-icon {
+  font-size: 18px;
+}
+
+.explorer-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.explorer-header-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s ease;
+}
+
+.explorer-header-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.explorer-btn-spin {
+  animation: explorer-spin 1s linear infinite;
+}
+
+@keyframes explorer-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Content */
+.explorer-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+}
+
+/* Loading, Error, Empty states */
+.explorer-loading,
+.explorer-error,
+.explorer-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.explorer-error {
+  color: var(--color-red, #ff5252);
+}
+
+.explorer-spinner {
+  animation: explorer-spin 1s linear infinite;
+}
+
+/* Tree */
+.explorer-tree {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Item */
+.explorer-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  user-select: none;
+}
+
+.explorer-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.explorer-item-selected {
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.1);
+}
+
+.explorer-item-selected:hover {
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.15);
+}
+
+.explorer-item-hidden {
+  opacity: 0.6;
+}
+
+/* Chevron */
+.explorer-chevron {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.explorer-chevron:hover {
+  color: var(--text-normal);
+}
+
+/* Icon */
+.explorer-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* Name */
+.explorer-name {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Explorer Modal Styles ===== */
+
+.explorer-modal {
+  padding: 20px;
+  max-width: 400px;
+}
+
+.explorer-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.explorer-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.explorer-modal-icon {
+  font-size: 20px;
+}
+
+.explorer-modal-icon-danger {
+  color: var(--color-red, #ff5252);
+}
+
+.explorer-modal-location,
+.explorer-modal-current {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 12px 0;
+  font-family: var(--font-monospace);
+  background: var(--background-secondary);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.explorer-modal-input-section {
+  margin-bottom: 16px;
+}
+
+.explorer-modal-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.explorer-modal-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  font-size: 14px;
+}
+
+.explorer-modal-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+.explorer-modal-hint {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.explorer-modal-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255, 82, 82, 0.1);
+  border: 1px solid var(--color-red, #ff5252);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.explorer-warning-icon {
+  font-size: 18px;
+  color: var(--color-red, #ff5252);
+  flex-shrink: 0;
+}
+
+.explorer-warning-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--color-red, #ff5252);
+  margin-bottom: 4px;
+}
+
+.explorer-warning-text p {
+  margin: 0;
+  font-size: 13px;
+  font-family: var(--font-monospace);
+}
+
+.explorer-modal-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 16px 0;
+}
+
+.explorer-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* Explorer Buttons */
+.explorer-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.explorer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.explorer-btn-primary {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.explorer-btn-primary:hover:not(:disabled) {
+  background: var(--interactive-accent-hover);
+}
+
+.explorer-btn-secondary {
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.explorer-btn-secondary:hover:not(:disabled) {
+  background: var(--background-modifier-hover);
+}
+
+.explorer-btn-danger {
+  background: var(--color-red, #ff5252);
+  color: white;
+}
+
+.explorer-btn-danger:hover:not(:disabled) {
+  background: #e04545;
+}
+
+/* Icon sizing for explorer */
+.explorer-title-icon svg,
+.explorer-header-btn svg,
+.explorer-chevron svg,
+.explorer-icon svg,
+.explorer-modal-icon svg,
+.explorer-warning-icon svg,
+.explorer-loading svg,
+.explorer-error-icon svg,
+.explorer-empty-icon svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}

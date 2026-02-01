@@ -113,12 +113,38 @@ src/settings/
   - [x] 백업 및 복원 로직 추가
   - [x] 프로세스 관리 (Obsidian 종료 확인)
 
-### Phase 7: Quick Actions 🔲
+### Phase 7: File Explorer ✅
+- [x] 커스텀 파일 탐색기 뷰 구현
+  - [x] 숨김 파일(.으로 시작) 표시
+  - [x] 파일 확장자 표시
+  - [x] 폴더 펼침/접힘
+  - [x] 파일 클릭 시 열기 (.md는 Obsidian, 그 외는 시스템 앱)
+  - [x] 우클릭 컨텍스트 메뉴
+  - [x] 파일/폴더 생성
+  - [x] 이름 바꾸기
+  - [x] 삭제 (휴지통으로 이동)
+
+**생성된 파일:**
+```
+src/explorer/
+├── index.ts              # 모듈 export
+├── explorer-view.ts      # ItemView 기반 사이드바 뷰
+├── explorer-service.ts   # Node.js fs 래퍼 서비스
+├── explorer-state.ts     # Observable 상태 관리
+├── explorer-types.ts     # 타입 정의
+└── components/
+    ├── index.ts          # 컴포넌트 export
+    ├── file-tree.ts      # 트리 뷰 렌더링
+    ├── context-menu.ts   # 우클릭 메뉴
+    └── modals.ts         # 생성/이름변경/삭제 모달
+```
+
+### Phase 8: Quick Actions 🔲
 - [ ] Quick Actions UI (리본 또는 명령 팔레트)
 - [ ] 자주 쓰는 Claude 명령 원클릭 실행
 - [ ] 사용자 정의 액션
 
-### Phase 8: 팀 설정 & 문서화 🔲
+### Phase 9: 팀 설정 & 문서화 🔲
 - [ ] vault 내 팀 설정 공유 (.claude/, agents/, skills/)
 - [ ] 사용자 문서
 - [ ] 개발자 문서
@@ -276,4 +302,20 @@ npm run deploy:test
 - **배포 프로세스 고도화**:
   - `install.sh` V2.1 리팩토링 (Homebrew 지원, 프로세스 관리, 안전성 강화)
   - `scripts/package-release.sh` 검증 및 정합성 확인
+
+### 세션 10 (2025-02-01)
+- Phase 7 완료: File Explorer
+- 커스텀 파일 탐색기 구현:
+  - Obsidian 기본 탐색기 제한 해결 (숨김파일, 확장자 표시)
+  - `ExplorerService`: Node.js fs 기반 파일 시스템 래퍼
+  - `ExplorerState`: 반응형 상태 관리 (GitState 패턴)
+  - `ExplorerView`: ItemView 기반 사이드바 뷰
+  - 파일 트리 컴포넌트: 펼침/접힘, 들여쓰기
+  - 컨텍스트 메뉴: 새 파일/폴더, 이름 바꾸기, 삭제
+  - Modal UI: 생성, 이름 변경, 삭제 확인
+- Electron shell API 사용:
+  - `shell.trashItem()`: 휴지통으로 이동
+  - `shell.openPath()`: 시스템 앱으로 열기
+  - `shell.showItemInFolder()`: Finder/Explorer에서 보기
+- 리본 아이콘 및 명령어 팔레트 추가
 
