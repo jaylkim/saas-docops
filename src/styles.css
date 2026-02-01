@@ -1842,21 +1842,37 @@
 
 .git-header-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .git-header-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
   background: transparent;
   border: none;
-  padding: 6px 8px;
-  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.15s ease;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  font-size: 13px;
+  height: 32px;
 }
 
 .git-header-btn:hover {
   background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.git-header-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.git-header-btn-text {
+  font-weight: 500;
 }
 
 .git-btn-spin {

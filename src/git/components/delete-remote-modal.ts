@@ -4,6 +4,7 @@
 
 import { Modal, App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
+import { ICON_NAMES } from "../../shared/icons";
 
 export class DeleteRemoteModal extends Modal {
   private gitState: GitState;
@@ -23,13 +24,13 @@ export class DeleteRemoteModal extends Modal {
     // Header
     const header = contentEl.createEl("div", { cls: "git-modal-header" });
     const headerIcon = header.createEl("span", { cls: "git-modal-header-icon git-modal-icon-warning" });
-    setIcon(headerIcon, "unlink");
+    setIcon(headerIcon, ICON_NAMES.unlink);
     header.createEl("h2", { text: "원격 저장소 연결 해제" });
 
     // Warning message
     const warning = contentEl.createEl("div", { cls: "git-delete-warning" });
     const warningIcon = warning.createEl("span", { cls: "git-delete-warning-icon" });
-    setIcon(warningIcon, "alert-triangle");
+    setIcon(warningIcon, ICON_NAMES.warning);
     warning.createEl("span", { text: "원격 저장소와의 연결을 해제합니다." });
 
     // Current URL display
@@ -41,7 +42,7 @@ export class DeleteRemoteModal extends Modal {
     // Info message
     const info = contentEl.createEl("div", { cls: "git-delete-info" });
     const infoIcon = info.createEl("span", { cls: "git-delete-info-icon" });
-    setIcon(infoIcon, "info");
+    setIcon(infoIcon, ICON_NAMES.info);
     info.createEl("span", { text: "로컬 저장소와 파일은 유지됩니다. 원격 서버의 저장소도 삭제되지 않습니다." });
 
     // Actions

@@ -4,7 +4,8 @@
 
 import { setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GitFile, GIT_ICON_NAMES } from "../git-types";
+import { GitViewState, GitFile } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 
 export function renderFileList(
   container: HTMLElement,
@@ -23,7 +24,7 @@ export function renderFileList(
   if (files.length === 0) {
     const noFilesEl = container.createEl("div", { cls: "git-no-files" });
     const successIcon = noFilesEl.createEl("span");
-    setIcon(successIcon, GIT_ICON_NAMES.success);
+    setIcon(successIcon, ICON_NAMES.success);
     noFilesEl.createEl("span", { text: " 변경된 파일이 없습니다" });
     return;
   }
@@ -32,7 +33,7 @@ export function renderFileList(
   const header = container.createEl("div", { cls: "git-file-list-header" });
   const titleEl = header.createEl("span", { cls: "git-file-list-title" });
   const listIcon = titleEl.createEl("span");
-  setIcon(listIcon, "list");
+  setIcon(listIcon, ICON_NAMES.list);
   titleEl.createEl("span", { text: ` 변경된 파일 (${files.length}개)` });
 
   // 전체 선택/해제 버튼들
@@ -114,18 +115,18 @@ function renderFileItem(
 function getFileStatusIconName(status: string): string {
   switch (status) {
     case "modified":
-      return GIT_ICON_NAMES.modified;
+      return ICON_NAMES.modified;
     case "added":
     case "untracked":
-      return GIT_ICON_NAMES.added;
+      return ICON_NAMES.added;
     case "deleted":
-      return GIT_ICON_NAMES.deleted;
+      return ICON_NAMES.deleted;
     case "renamed":
-      return "file-edit";
+      return ICON_NAMES.renamed;
     case "conflicted":
-      return GIT_ICON_NAMES.conflict;
+      return ICON_NAMES.conflict;
     default:
-      return GIT_ICON_NAMES.file;
+      return ICON_NAMES.file;
   }
 }
 

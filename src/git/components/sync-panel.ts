@@ -4,7 +4,8 @@
 
 import { App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICON_NAMES } from "../git-types";
+import { GitViewState } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 import { EditRemoteModal } from "./edit-remote-modal";
 import { DeleteRemoteModal } from "./delete-remote-modal";
 
@@ -36,7 +37,7 @@ export function renderSyncPanel(
       attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pullIcon = pullBtn.createEl("span", { cls: "git-action-icon" });
-    setIcon(pullIcon, GIT_ICON_NAMES.pull);
+    setIcon(pullIcon, ICON_NAMES.pull);
     pullBtn.createEl("span", { text: `${status.behind}개의 새 버전 가져오기` });
 
     pullBtn.onclick = async () => {
@@ -57,7 +58,7 @@ export function renderSyncPanel(
       attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pushIcon = initialPushBtn.createEl("span", { cls: "git-action-icon" });
-    setIcon(pushIcon, "cloud-upload");
+    setIcon(pushIcon, ICON_NAMES.cloudUpload);
     initialPushBtn.createEl("span", { text: "클라우드에 첫 업로드" });
 
     initialPushBtn.onclick = async () => {
@@ -78,7 +79,7 @@ export function renderSyncPanel(
       attr: { style: "width: 100%; max-width: none; justify-content: center; flex-direction: row;" }
     });
     const pushIcon = pushBtn.createEl("span", { cls: "git-action-icon" });
-    setIcon(pushIcon, GIT_ICON_NAMES.push);
+    setIcon(pushIcon, ICON_NAMES.push);
     pushBtn.createEl("span", { text: `${status.ahead}개의 버전 클라우드에 올리기` });
 
     pushBtn.onclick = async () => {
@@ -100,7 +101,7 @@ export function renderSyncPanel(
       attr: { style: "text-align: center; color: var(--text-muted); padding: 10px;" }
     });
     const checkIcon = syncedEl.createEl("span");
-    setIcon(checkIcon, "check-circle");
+    setIcon(checkIcon, ICON_NAMES.success);
     syncedEl.createEl("span", { text: " 모든 내용이 클라우드와 동기화되었습니다." });
   }
 
@@ -120,7 +121,7 @@ export function renderSyncPanel(
         attr: { title: "URL 수정" },
       });
       const editIcon = editBtn.createEl("span");
-      setIcon(editIcon, "pencil");
+      setIcon(editIcon, ICON_NAMES.modified);
       editBtn.onclick = (e) => {
         e.stopPropagation();
         new EditRemoteModal(app, gitState, status.remoteUrl!).open();
@@ -132,7 +133,7 @@ export function renderSyncPanel(
         attr: { title: "연결 해제" },
       });
       const unlinkIcon = unlinkBtn.createEl("span");
-      setIcon(unlinkIcon, "unlink");
+      setIcon(unlinkIcon, ICON_NAMES.unlink);
       unlinkBtn.onclick = (e) => {
         e.stopPropagation();
         new DeleteRemoteModal(app, gitState, status.remoteUrl!).open();

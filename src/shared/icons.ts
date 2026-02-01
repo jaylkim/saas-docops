@@ -13,19 +13,33 @@ export const ICON_NAMES = {
   warning: "alert-triangle",
   loading: "loader",
   refresh: "refresh-cw",
+  sync: "refresh-cw", // refresh alias
 
   // Git
   home: "home",
   branch: "git-branch",
   commit: "save",
+  gitCommit: "git-commit", // timeline dot
   pull: "download",
   push: "upload",
   conflict: "alert-triangle",
   file: "file",
   folder: "folder",
-  modified: "edit",
-  added: "plus",
+  modified: "edit-2", // updated to match history panel preference
+  added: "plus-circle", // updated to match history panel preference
   deleted: "trash-2",
+  moved: "move",
+  renamed: "file-edit",
+
+  inbox: "inbox", // empty state
+  lightbulb: "lightbulb", // help
+  history: "history",
+  clock: "clock",
+  list: "list",
+
+  // Navigation & Actions
+  arrowLeft: "arrow-left",
+  arrowRight: "arrow-right",
 
   // MCP
   bot: "bot",
@@ -36,6 +50,19 @@ export const ICON_NAMES = {
   database: "database",
   memory: "brain",
   plug: "plug",
+  cloudOff: "cloud-off",
+  cloudUpload: "cloud-upload",
+  unlink: "unlink",
+  pullRequest: "file-edit",
+  kanban: "folder-kanban",
+  wand: "wand",
+  activity: "activity",
+  zap: "zap",
+  play: "play",
+  gitlab: "gitlab",
+  bitbucket: "box",
+  cloud: "cloud",
+  users: "users",
 
   // 일반
   terminal: "terminal-square",

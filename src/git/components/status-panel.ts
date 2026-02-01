@@ -4,7 +4,8 @@
 
 import { App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICON_NAMES, GIT_TERMS } from "../git-types";
+import { GitViewState, GIT_TERMS } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 import { AddRemoteModal } from "./add-remote-modal";
 
 export function renderStatusPanel(
@@ -19,7 +20,7 @@ export function renderStatusPanel(
   if (state.loading) {
     const loadingEl = container.createEl("div", { cls: "git-loading" });
     const loadingIcon = loadingEl.createEl("span", { cls: "git-loading-icon" });
-    setIcon(loadingIcon, GIT_ICON_NAMES.loading);
+    setIcon(loadingIcon, ICON_NAMES.loading);
     loadingEl.createEl("span", { text: " 상태 확인 중..." });
     return;
   }
@@ -27,7 +28,7 @@ export function renderStatusPanel(
   if (state.error) {
     const errorBox = container.createEl("div", { cls: "git-error-box" });
     const errorIcon = errorBox.createEl("span", { cls: "git-error-icon" });
-    setIcon(errorIcon, GIT_ICON_NAMES.error);
+    setIcon(errorIcon, ICON_NAMES.error);
     errorBox.createEl("span", { cls: "git-error-text", text: state.error });
     return;
   }
@@ -45,7 +46,7 @@ export function renderStatusPanel(
   // 현재 작업 공간 (브랜치)
   const branchBox = container.createEl("div", { cls: "git-branch-box" });
   const branchIcon = branchBox.createEl("span", { cls: "git-branch-icon" });
-  setIcon(branchIcon, status.isMainBranch ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
+  setIcon(branchIcon, status.isMainBranch ? ICON_NAMES.home : ICON_NAMES.branch);
 
   const branchInfo = branchBox.createEl("div", { cls: "git-branch-info" });
   branchInfo.createEl("span", { cls: "git-branch-label", text: GIT_TERMS.branch });
@@ -59,7 +60,7 @@ export function renderStatusPanel(
   if (status.isMainBranch && (status.staged.length > 0 || status.modified.length > 0)) {
     const warning = container.createEl("div", { cls: "git-warning-box" });
     const warningIcon = warning.createEl("span", { cls: "git-warning-icon" });
-    setIcon(warningIcon, GIT_ICON_NAMES.warning);
+    setIcon(warningIcon, ICON_NAMES.warning);
     warning.createEl("span", {
       cls: "git-warning-text",
       text: "메인 브랜치에서 직접 작업 중입니다. 새 작업 공간을 만드는 것이 좋습니다."
@@ -73,7 +74,7 @@ export function renderStatusPanel(
     if (status.behind > 0) {
       const pullInfo = syncBox.createEl("div", { cls: "git-sync-item git-sync-behind" });
       const pullIcon = pullInfo.createEl("span", { cls: "git-sync-icon" });
-      setIcon(pullIcon, GIT_ICON_NAMES.pull);
+      setIcon(pullIcon, ICON_NAMES.pull);
       pullInfo.createEl("span", {
         text: `${status.behind}개의 새 버전 (가져오기 필요)`
       });
@@ -82,7 +83,7 @@ export function renderStatusPanel(
     if (status.ahead > 0) {
       const pushInfo = syncBox.createEl("div", { cls: "git-sync-item git-sync-ahead" });
       const pushIcon = pushInfo.createEl("span", { cls: "git-sync-icon" });
-      setIcon(pushIcon, GIT_ICON_NAMES.push);
+      setIcon(pushIcon, ICON_NAMES.push);
       pushInfo.createEl("span", {
         text: `${status.ahead}개의 작성한 버전 (업로드 필요)`
       });
@@ -91,7 +92,7 @@ export function renderStatusPanel(
     if (status.ahead === 0 && status.behind === 0) {
       const upToDate = syncBox.createEl("div", { cls: "git-sync-item git-sync-uptodate" });
       const successIcon = upToDate.createEl("span", { cls: "git-sync-icon" });
-      setIcon(successIcon, GIT_ICON_NAMES.success);
+      setIcon(successIcon, ICON_NAMES.success);
       upToDate.createEl("span", { text: "모든 내용이 최신 상태입니다" });
     }
   } else {
@@ -99,7 +100,7 @@ export function renderStatusPanel(
     const noRemoteContent = noRemote.createEl("div", { cls: "git-no-remote-content" });
 
     const noRemoteIcon = noRemoteContent.createEl("span", { cls: "git-no-remote-icon" });
-    setIcon(noRemoteIcon, "cloud-off");
+    setIcon(noRemoteIcon, ICON_NAMES.cloudOff);
 
     const noRemoteText = noRemoteContent.createEl("div", { cls: "git-no-remote-text" });
     noRemoteText.createEl("span", {
@@ -129,7 +130,7 @@ export function renderStatusPanel(
     if (!hasGitignore) {
       const gitignoreWarning = container.createEl("div", { cls: "git-gitignore-warning" });
       const shieldIcon = gitignoreWarning.createEl("span", { cls: "git-warning-icon" });
-      setIcon(shieldIcon, "shield");
+      setIcon(shieldIcon, ICON_NAMES.shield);
 
       const warningContent = gitignoreWarning.createEl("div", { cls: "git-gitignore-content" });
       warningContent.createEl("span", {
@@ -161,12 +162,12 @@ export function renderStatusPanel(
   if (totalChanges === 0) {
     const noChangesEl = fileSummary.createEl("div", { cls: "git-no-changes" });
     const noChangesIcon = noChangesEl.createEl("span");
-    setIcon(noChangesIcon, GIT_ICON_NAMES.success);
+    setIcon(noChangesIcon, ICON_NAMES.success);
     noChangesEl.createEl("span", { text: " 변경사항 없음" });
   } else {
     const changesCountEl = fileSummary.createEl("div", { cls: "git-changes-count" });
     const fileIcon = changesCountEl.createEl("span");
-    setIcon(fileIcon, GIT_ICON_NAMES.file);
+    setIcon(fileIcon, ICON_NAMES.file);
     changesCountEl.createEl("span", { text: ` ${totalChanges}개 파일 변경됨` });
 
     const details = fileSummary.createEl("div", { cls: "git-changes-details" });
@@ -195,7 +196,7 @@ export function renderStatusPanel(
     if (status.conflicted.length > 0) {
       const conflictEl = details.createEl("span", { cls: "git-detail-item git-conflicted" });
       const conflictIcon = conflictEl.createEl("span");
-      setIcon(conflictIcon, GIT_ICON_NAMES.conflict);
+      setIcon(conflictIcon, ICON_NAMES.conflict);
       conflictEl.createEl("span", { text: ` 충돌: ${status.conflicted.length}` });
     }
   }

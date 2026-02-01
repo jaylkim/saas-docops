@@ -154,31 +154,8 @@ export const GIT_TEXT_ICONS = {
   sync: "🔄",
 } as const;
 
-// Lucide 아이콘 이름 (신규)
-export const GIT_ICON_NAMES = {
-  branch: "git-branch",
-  main: "home",
-  commit: "save",
-  pull: "download",
-  push: "upload",
-  conflict: "alert-triangle",
-  pullRequest: "file-edit",
-  success: "check-circle",
-  error: "x-circle",
-  warning: "alert-triangle",
-  file: "file",
-  folder: "folder",
-  modified: "edit",
-  added: "plus",
-  deleted: "trash-2",
-  loading: "loader",
-  sync: "refresh-cw",
-  info: "info",
-  history: "history",
-  clock: "clock",
-  arrowLeft: "arrow-left",
-  gitCommit: "git-commit",
-} as const;
+// Lucide 아이콘 이름 (Deprecated: Use ICON_NAMES from shared/icons)
+// export const GIT_ICON_NAMES = ...
 
-// 상태 아이콘 (수정됨: Lucide 아이콘 이름 참조)
-export const GIT_ICONS = GIT_ICON_NAMES;
+// 상태 아이콘 (수정됨: Lucide 아이콘 이름 참조 - Deprecated)
+// export const GIT_ICONS = GIT_ICON_NAMES;

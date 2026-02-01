@@ -4,7 +4,8 @@
 
 import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICONS, GIT_TEXT_ICONS } from "../git-types";
+import { GitViewState, GIT_TEXT_ICONS } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 import { getExtendedPath } from "../../wizard/environment-checker";
 
 export function renderCommitForm(
@@ -113,7 +114,7 @@ export function renderCommitForm(
 
   // Icon
   const btnIcon = commitPushBtn.createEl("span", { cls: "git-btn-icon" });
-  setIcon(btnIcon, GIT_ICONS.push);
+  setIcon(btnIcon, ICON_NAMES.push);
 
   // Text
   commitPushBtn.createEl("span", { text: "버전 저장 & 업로드" });

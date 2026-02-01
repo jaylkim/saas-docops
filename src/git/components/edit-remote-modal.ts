@@ -4,6 +4,7 @@
 
 import { Modal, App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
+import { ICON_NAMES } from "../../shared/icons";
 
 export class EditRemoteModal extends Modal {
   private gitState: GitState;
@@ -24,7 +25,7 @@ export class EditRemoteModal extends Modal {
     // Header
     const header = contentEl.createEl("div", { cls: "git-modal-header" });
     const headerIcon = header.createEl("span", { cls: "git-modal-header-icon" });
-    setIcon(headerIcon, "pencil");
+    setIcon(headerIcon, ICON_NAMES.modified);
     header.createEl("h2", { text: "원격 저장소 수정" });
 
     // Description

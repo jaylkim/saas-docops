@@ -4,7 +4,8 @@
 
 import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICON_NAMES } from "../git-types";
+import { GitViewState } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 
 export function renderConflictPanel(
   container: HTMLElement,
@@ -27,7 +28,7 @@ export function renderConflictPanel(
   if (status.conflicted.length === 0) {
     const noConflict = container.createEl("div", { cls: "git-no-conflict" });
     const successIcon = noConflict.createEl("span", { cls: "git-no-conflict-icon" });
-    setIcon(successIcon, GIT_ICON_NAMES.success);
+    setIcon(successIcon, ICON_NAMES.success);
     noConflict.createEl("span", { text: " 충돌 없음! 모든 파일이 정상입니다." });
     return;
   }
@@ -35,7 +36,7 @@ export function renderConflictPanel(
   // 충돌 경고
   const warningBox = container.createEl("div", { cls: "git-conflict-warning" });
   const conflictIcon = warningBox.createEl("span", { cls: "git-conflict-icon" });
-  setIcon(conflictIcon, GIT_ICON_NAMES.conflict);
+  setIcon(conflictIcon, ICON_NAMES.conflict);
   warningBox.createEl("div", { cls: "git-conflict-message" }).innerHTML = `
     <strong>${status.conflicted.length}개 파일에서 충돌 발생</strong>
     <p>같은 부분을 동시에 수정했을 때 충돌이 발생합니다. 각 파일의 충돌을 해결해야 합니다.</p>
@@ -51,7 +52,7 @@ export function renderConflictPanel(
     // 파일 정보
     const fileInfo = fileItem.createEl("div", { cls: "git-conflict-file-info" });
     const fileIcon = fileInfo.createEl("span", { cls: "git-conflict-file-icon" });
-    setIcon(fileIcon, GIT_ICON_NAMES.conflict);
+    setIcon(fileIcon, ICON_NAMES.conflict);
     fileInfo.createEl("span", { cls: "git-conflict-file-name", text: file.displayName });
 
     if (file.path !== file.displayName) {
@@ -107,7 +108,7 @@ export function renderConflictPanel(
   const helpBox = container.createEl("div", { cls: "git-help-box" });
   const helpTitle = helpBox.createEl("div", { cls: "git-help-title" });
   const helpIcon = helpTitle.createEl("span");
-  setIcon(helpIcon, "lightbulb");
+  setIcon(helpIcon, ICON_NAMES.lightbulb);
   helpTitle.createEl("span", { text: " 충돌 해결 방법" });
   helpBox.createEl("div", { cls: "git-help-text" }).innerHTML = `
     <p><strong>내 변경사항 사용:</strong> 내가 수정한 내용을 유지합니다.</p>

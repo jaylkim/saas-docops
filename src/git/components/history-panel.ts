@@ -4,7 +4,8 @@
 
 import { Notice, Modal, App, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GitCommitInfo, GIT_ICON_NAMES, GIT_TERMS, GitFile } from "../git-types";
+import { GitViewState, GitCommitInfo, GIT_TERMS, GitFile } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 
 /**
  * 상대 시간 포맷 (예: "3일 전", "2시간 전")
@@ -61,7 +62,7 @@ export function renderHistoryPanel(
   if (state.loading) {
     const loadingEl = container.createEl("div", { cls: "git-loading" });
     const spinner = loadingEl.createEl("span", { cls: "git-spinner" });
-    setIcon(spinner, "loader");
+    setIcon(spinner, ICON_NAMES.loading);
     loadingEl.createEl("span", { text: " 저장 이력 불러오는 중..." });
     return;
   }
@@ -70,7 +71,7 @@ export function renderHistoryPanel(
   if (state.commits.length === 0) {
     const emptyEl = container.createEl("div", { cls: "git-panel-empty" });
     const emptyIcon = emptyEl.createEl("div", { cls: "git-empty-icon" });
-    setIcon(emptyIcon, "inbox");
+    setIcon(emptyIcon, ICON_NAMES.inbox);
     emptyEl.createEl("p", { text: "아직 저장된 이력이 없습니다" });
     emptyEl.createEl("p", {
       cls: "git-empty-hint",
@@ -83,7 +84,7 @@ export function renderHistoryPanel(
   const toolbar = container.createEl("div", { cls: "git-history-toolbar" });
   const searchContainer = toolbar.createEl("div", { cls: "git-search-container" });
   const searchIcon = searchContainer.createEl("span", { cls: "git-search-icon" });
-  setIcon(searchIcon, "search");
+  setIcon(searchIcon, ICON_NAMES.search);
 
   const searchInput = searchContainer.createEl("input", {
     type: "text",
@@ -139,7 +140,7 @@ function renderDetachedWarning(container: HTMLElement, gitState: GitState): void
 
   const warningContent = warning.createEl("div", { cls: "git-detached-content" });
   const warningIcon = warningContent.createEl("span", { cls: "git-detached-icon" });
-  setIcon(warningIcon, "alert-triangle");
+  setIcon(warningIcon, ICON_NAMES.warning);
 
   const warningText = warningContent.createEl("div", { cls: "git-detached-text" });
   warningText.createEl("div", {
@@ -155,7 +156,7 @@ function renderDetachedWarning(container: HTMLElement, gitState: GitState): void
     cls: "git-btn git-btn-warning"
   });
   const returnIcon = returnBtn.createEl("span", { cls: "git-btn-icon" });
-  setIcon(returnIcon, "arrow-left");
+  setIcon(returnIcon, ICON_NAMES.arrowLeft);
   returnBtn.createEl("span", { text: GIT_TERMS.returnToLatest });
 
   returnBtn.onclick = async () => {
@@ -187,7 +188,7 @@ function renderCommitItem(
     cls: `git-timeline-dot ${commit.isCurrent ? "git-timeline-dot-current" : ""}`
   });
   if (commit.isCurrent) {
-    setIcon(dot, "git-commit");
+    setIcon(dot, ICON_NAMES.gitCommit);
   }
   timeline.createEl("div", { cls: "git-timeline-line" });
 
@@ -261,7 +262,7 @@ function renderCommitItem(
     if (state.detailLoading && !commit.files) {
       const loading = details.createEl("div", { cls: "git-details-loading" });
       const spinner = loading.createEl("span", { cls: "git-spinner-sm" });
-      setIcon(spinner, "loader");
+      setIcon(spinner, ICON_NAMES.loading);
       loading.createEl("span", { text: "변경 내역 불러오는 중..." });
     } else if (commit.files) {
       renderCommitFiles(details, commit.files);
@@ -283,11 +284,11 @@ function renderCommitFiles(container: HTMLElement, files: GitFile[]): void {
       cls: `git-file-status git-status-${file.status}`
     });
 
-    let iconName = "file";
-    if (file.status === "added") iconName = "plus-circle";
-    else if (file.status === "deleted") iconName = "trash-2";
-    else if (file.status === "modified") iconName = "edit-2";
-    else if (file.status === "renamed") iconName = "move";
+    let iconName: string = ICON_NAMES.file;
+    if (file.status === "added") iconName = ICON_NAMES.added;
+    else if (file.status === "deleted") iconName = ICON_NAMES.deleted;
+    else if (file.status === "modified") iconName = ICON_NAMES.modified;
+    else if (file.status === "renamed") iconName = ICON_NAMES.moved; // History uses 'move' visually
 
     setIcon(statusIcon, iconName);
 
@@ -303,7 +304,7 @@ function renderHelpBox(container: HTMLElement): void {
   const helpBox = container.createEl("div", { cls: "git-help-box" });
   const helpTitle = helpBox.createEl("div", { cls: "git-help-title" });
   const helpIcon = helpTitle.createEl("span");
-  setIcon(helpIcon, "lightbulb");
+  setIcon(helpIcon, ICON_NAMES.lightbulb);
   helpTitle.createEl("span", { text: " 저장 이력이란?" });
   helpBox.createEl("div", {
     cls: "git-help-text",

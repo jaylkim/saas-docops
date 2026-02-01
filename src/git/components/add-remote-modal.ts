@@ -4,6 +4,7 @@
 
 import { Modal, App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
+import { ICON_NAMES } from "../../shared/icons";
 
 export class AddRemoteModal extends Modal {
   private gitState: GitState;
@@ -22,7 +23,7 @@ export class AddRemoteModal extends Modal {
     // Header
     const header = contentEl.createEl("div", { cls: "git-modal-header" });
     const headerIcon = header.createEl("span", { cls: "git-modal-header-icon" });
-    setIcon(headerIcon, "cloud");
+    setIcon(headerIcon, ICON_NAMES.cloud);
     header.createEl("h2", { text: "원격 저장소 연결" });
 
     // Description
@@ -39,17 +40,17 @@ export class AddRemoteModal extends Modal {
 
     const githubExample = examples.createEl("div", { cls: "git-remote-example" });
     const githubIcon = githubExample.createEl("span", { cls: "git-remote-provider-icon" });
-    setIcon(githubIcon, "github");
+    setIcon(githubIcon, ICON_NAMES.github);
     githubExample.createEl("code", { text: "git@github.com:사용자/저장소.git" });
 
     const gitlabExample = examples.createEl("div", { cls: "git-remote-example" });
     const gitlabIcon = gitlabExample.createEl("span", { cls: "git-remote-provider-icon" });
-    setIcon(gitlabIcon, "gitlab");
+    setIcon(gitlabIcon, ICON_NAMES.gitlab);
     gitlabExample.createEl("code", { text: "git@gitlab.com:사용자/저장소.git" });
 
     const bitbucketExample = examples.createEl("div", { cls: "git-remote-example" });
     const bitbucketIcon = bitbucketExample.createEl("span", { cls: "git-remote-provider-icon" });
-    setIcon(bitbucketIcon, "box");
+    setIcon(bitbucketIcon, ICON_NAMES.bitbucket);
     bitbucketExample.createEl("code", { text: "git@bitbucket.org:사용자/저장소.git" });
 
     // Input section

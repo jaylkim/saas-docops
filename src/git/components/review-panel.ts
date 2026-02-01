@@ -4,7 +4,8 @@
 
 import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICON_NAMES, PRLinkInfo } from "../git-types";
+import { GitViewState, PRLinkInfo } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 
 export function renderReviewPanel(
   container: HTMLElement,
@@ -27,7 +28,7 @@ export function renderReviewPanel(
   if (status.isMainBranch) {
     const infoBox = container.createEl("div", { cls: "git-info-box" });
     const infoIcon = infoBox.createEl("span", { cls: "git-info-icon" });
-    setIcon(infoIcon, GIT_ICON_NAMES.info);
+    setIcon(infoIcon, ICON_NAMES.info);
     infoBox.createEl("span", {
       text: "메인 브랜치에서는 검토 요청을 할 수 없습니다. 먼저 새 작업 공간을 만드세요."
     });
@@ -38,7 +39,7 @@ export function renderReviewPanel(
   if (status.ahead === 0 && status.staged.length === 0 && status.modified.length === 0) {
     const infoBox = container.createEl("div", { cls: "git-info-box" });
     const infoIcon = infoBox.createEl("span", { cls: "git-info-icon" });
-    setIcon(infoIcon, GIT_ICON_NAMES.info);
+    setIcon(infoIcon, ICON_NAMES.info);
     infoBox.createEl("span", {
       text: "검토 요청할 변경사항이 없습니다. 작업을 저장하고 올린 후 다시 시도하세요."
     });
@@ -48,7 +49,7 @@ export function renderReviewPanel(
   // 헤더
   const header = container.createEl("div", { cls: "git-review-header" });
   const reviewIcon = header.createEl("span", { cls: "git-review-icon" });
-  setIcon(reviewIcon, GIT_ICON_NAMES.pullRequest);
+  setIcon(reviewIcon, ICON_NAMES.pullRequest);
   header.createEl("span", { cls: "git-review-title", text: "검토 요청 만들기" });
 
   // 현재 상태 요약
@@ -71,7 +72,7 @@ export function renderReviewPanel(
   } else if (status.staged.length > 0 || status.modified.length > 0) {
     const warning = container.createEl("div", { cls: "git-warning-box" });
     const warningIcon = warning.createEl("span", { cls: "git-warning-icon" });
-    setIcon(warningIcon, GIT_ICON_NAMES.warning);
+    setIcon(warningIcon, ICON_NAMES.warning);
     warning.createEl("span", {
       text: "먼저 변경사항을 '저장 & 올리기' 해야 검토 요청을 할 수 있습니다."
     });
@@ -91,7 +92,7 @@ export function renderReviewPanel(
     cls: "git-btn git-btn-primary git-btn-large"
   });
   const prIcon = createPRBtn.createEl("span", { cls: "git-btn-icon" });
-  setIcon(prIcon, GIT_ICON_NAMES.pullRequest);
+  setIcon(prIcon, ICON_NAMES.pullRequest);
   createPRBtn.createEl("span", { text: "검토 요청 페이지 열기" });
 
   createPRBtn.onclick = async () => {
@@ -124,7 +125,7 @@ export function renderReviewPanel(
   const helpBox = container.createEl("div", { cls: "git-help-box" });
   const helpTitle = helpBox.createEl("div", { cls: "git-help-title" });
   const helpIcon = helpTitle.createEl("span");
-  setIcon(helpIcon, "lightbulb");
+  setIcon(helpIcon, ICON_NAMES.lightbulb);
   helpTitle.createEl("span", { text: " 검토 요청이란?" });
   helpBox.createEl("div", {
     cls: "git-help-text",

@@ -4,7 +4,8 @@
 
 import { Notice, Modal, App, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GitBranch, GIT_ICON_NAMES, GIT_TERMS } from "../git-types";
+import { GitViewState, GitBranch, GIT_TERMS } from "../git-types";
+import { ICON_NAMES } from "../../shared/icons";
 
 export function renderWorkspacePanel(
   container: HTMLElement,
@@ -30,7 +31,7 @@ export function renderWorkspacePanel(
 
   const currentBox = currentSection.createEl("div", { cls: "git-workspace-current-box" });
   const workspaceIcon = currentBox.createEl("span", { cls: "git-workspace-icon" });
-  setIcon(workspaceIcon, status.isMainBranch ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
+  setIcon(workspaceIcon, status.isMainBranch ? ICON_NAMES.home : ICON_NAMES.branch);
   currentBox.createEl("span", { cls: "git-workspace-name", text: status.currentBranch });
 
   if (status.isMainBranch) {
@@ -112,7 +113,7 @@ export function renderWorkspacePanel(
 
       const info = item.createEl("div", { cls: "git-workspace-item-info" });
       const itemIcon = info.createEl("span", { cls: "git-workspace-icon" });
-      setIcon(itemIcon, branch.isMain ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
+      setIcon(itemIcon, branch.isMain ? ICON_NAMES.home : ICON_NAMES.branch);
       info.createEl("span", { cls: "git-workspace-item-name", text: branch.name });
 
       if (branch.isMain) {
@@ -146,7 +147,7 @@ export function renderWorkspacePanel(
   const helpBox = container.createEl("div", { cls: "git-help-box" });
   const helpTitle = helpBox.createEl("div", { cls: "git-help-title" });
   const helpIcon = helpTitle.createEl("span");
-  setIcon(helpIcon, "lightbulb");
+  setIcon(helpIcon, ICON_NAMES.lightbulb);
   helpTitle.createEl("span", { text: " 작업 공간이란?" });
   helpBox.createEl("div", {
     cls: "git-help-text",
