@@ -19,6 +19,7 @@ native/
 
 # AI Assistants
 CLAUDE.md
+PLAN.md
 .claude/
 GEMINI.md
 .gemini/
