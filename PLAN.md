@@ -355,3 +355,17 @@ npm run deploy:test
     - diff 크기 4000자 제한, 30초 타임아웃
     - 에러 핸들링 (변경사항 없음, Claude 미설치, 생성 실패, 빈 응답)
 
+### 세션 13 (2025-02-01)
+- **원격 저장소 수정/삭제 기능**:
+  - **문제**: 연결된 원격 저장소 URL을 변경하거나 연결 해제할 방법이 없음
+  - **해결책**:
+    - `git-service.ts`: `setRemoteUrl()`, `removeRemote()` 메서드 추가
+    - `git-state.ts`: 래퍼 메서드 추가 (상태 새로고침 포함)
+    - `edit-remote-modal.ts`: URL 수정 모달 (현재 URL 표시, 새 URL 입력)
+    - `delete-remote-modal.ts`: 연결 해제 확인 모달 (경고 + 안내 메시지)
+    - `sync-panel.ts`: 원격 URL 옆에 수정(pencil)/삭제(unlink) 아이콘 버튼 추가
+    - `styles.css`: `.git-remote-actions`, `.git-btn-danger`, 모달 스타일 추가
+  - **UI/UX**:
+    - 수정 버튼: 연필 아이콘, 기존 URL이 입력 필드에 채워짐
+    - 삭제 버튼: 링크 해제 아이콘, 주황색 경고 + "로컬 저장소 유지됨" 안내
+

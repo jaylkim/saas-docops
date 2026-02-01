@@ -1066,4 +1066,77 @@ npm-debug.log*
       .replace(/^https?:\/\/[^/]+\//, "")
       .replace(/\.git$/, "");
   }
+
+  /**
+   * 원격 저장소 URL 변경 (Set Remote URL)
+   */
+  async setRemoteUrl(url: string, name = "origin"): Promise<GitOperationResult> {
+    try {
+      // URL 유효성 검사
+      if (!this.isValidRemoteUrl(url)) {
+        return {
+          success: false,
+          message: "유효하지 않은 URL 형식입니다",
+          error: "HTTPS (https://...) 또는 SSH (git@...) 형식으로 입력해주세요.",
+        };
+      }
+
+      // remote 존재 확인
+      const remotes = await this.git.getRemotes(true);
+      const existing = remotes.find((r) => r.name === name);
+      if (!existing) {
+        return {
+          success: false,
+          message: `'${name}' 원격 저장소가 존재하지 않습니다`,
+          error: "먼저 원격 저장소를 연결하세요.",
+        };
+      }
+
+      // remote URL 변경
+      await this.git.remote(["set-url", name, url]);
+
+      return {
+        success: true,
+        message: "원격 저장소 URL이 변경되었습니다!",
+        details: `${name}: ${this.formatRemoteUrlForDisplay(url)}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "원격 저장소 URL 변경 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * 원격 저장소 연결 해제 (Remove Remote)
+   */
+  async removeRemote(name = "origin"): Promise<GitOperationResult> {
+    try {
+      // remote 존재 확인
+      const remotes = await this.git.getRemotes(true);
+      const existing = remotes.find((r) => r.name === name);
+      if (!existing) {
+        return {
+          success: false,
+          message: `'${name}' 원격 저장소가 존재하지 않습니다`,
+        };
+      }
+
+      // remote 삭제
+      await this.git.remote(["remove", name]);
+
+      return {
+        success: true,
+        message: "원격 저장소 연결이 해제되었습니다",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "원격 저장소 연결 해제 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
 }

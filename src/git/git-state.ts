@@ -320,6 +320,24 @@ export class GitState {
   }
 
   /**
+   * 원격 저장소 URL 변경
+   */
+  async setRemoteUrl(url: string, name = "origin"): Promise<GitOperationResult> {
+    const result = await this.service.setRemoteUrl(url, name);
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 원격 저장소 연결 해제
+   */
+  async removeRemote(name = "origin"): Promise<GitOperationResult> {
+    const result = await this.service.removeRemote(name);
+    await this.refresh();
+    return result;
+  }
+
+  /**
    * Git diff 가져오기 (AI 커밋 메시지 생성용)
    * @param files 특정 파일들만 diff할 경우 파일 경로 배열
    */

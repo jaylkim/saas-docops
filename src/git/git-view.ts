@@ -260,7 +260,7 @@ export class GitView extends ItemView {
     const syncIcon = syncHeader.createEl("span", { cls: "git-section-icon" });
     setIcon(syncIcon, "zap");
     syncHeader.createEl("span", { text: " 빠른 작업" });
-    renderSyncPanel(syncSection, state, this.gitState);
+    renderSyncPanel(syncSection, state, this.gitState, this.app);
 
     // 파일 목록
     const fileSection = container.createEl("div", { cls: "git-section" });

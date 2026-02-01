@@ -2,14 +2,17 @@
  * Sync Panel - 동기화 (Pull/Push) 패널
  */
 
-import { Notice, setIcon } from "obsidian";
+import { App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
 import { GitViewState, GIT_ICON_NAMES } from "../git-types";
+import { EditRemoteModal } from "./edit-remote-modal";
+import { DeleteRemoteModal } from "./delete-remote-modal";
 
 export function renderSyncPanel(
   container: HTMLElement,
   state: GitViewState,
-  gitState: GitState
+  gitState: GitState,
+  app?: App
 ): void {
   container.empty();
   container.addClass("git-sync-panel");
@@ -106,6 +109,35 @@ export function renderSyncPanel(
     const remoteInfo = container.createEl("div", { cls: "git-remote-info" });
     remoteInfo.createEl("span", { cls: "git-remote-label", text: "원격 저장소:" });
     remoteInfo.createEl("span", { cls: "git-remote-url", text: formatRemoteUrl(status.remoteUrl) });
+
+    // 수정/삭제 버튼 (app이 제공된 경우에만)
+    if (app) {
+      const remoteActions = remoteInfo.createEl("div", { cls: "git-remote-actions" });
+
+      // 수정 버튼
+      const editBtn = remoteActions.createEl("button", {
+        cls: "git-remote-action-btn",
+        attr: { title: "URL 수정" },
+      });
+      const editIcon = editBtn.createEl("span");
+      setIcon(editIcon, "pencil");
+      editBtn.onclick = (e) => {
+        e.stopPropagation();
+        new EditRemoteModal(app, gitState, status.remoteUrl!).open();
+      };
+
+      // 연결 해제 버튼
+      const unlinkBtn = remoteActions.createEl("button", {
+        cls: "git-remote-action-btn git-remote-action-btn-danger",
+        attr: { title: "연결 해제" },
+      });
+      const unlinkIcon = unlinkBtn.createEl("span");
+      setIcon(unlinkIcon, "unlink");
+      unlinkBtn.onclick = (e) => {
+        e.stopPropagation();
+        new DeleteRemoteModal(app, gitState, status.remoteUrl!).open();
+      };
+    }
   }
 }
 
