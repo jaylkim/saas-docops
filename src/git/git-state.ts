@@ -304,6 +304,15 @@ export class GitState {
   }
 
   /**
+   * 원격 저장소 연결
+   */
+  async addRemote(url: string, name = "origin"): Promise<GitOperationResult> {
+    const result = await this.service.addRemote(url, name);
+    await this.refresh();
+    return result;
+  }
+
+  /**
    * 리소스 정리
    */
   destroy(): void {

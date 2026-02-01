@@ -2,14 +2,16 @@
  * Status Panel - 현재 상태 표시
  */
 
-import { Notice, setIcon } from "obsidian";
+import { App, Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
 import { GitViewState, GIT_ICON_NAMES, GIT_TERMS } from "../git-types";
+import { AddRemoteModal } from "./add-remote-modal";
 
 export function renderStatusPanel(
   container: HTMLElement,
   state: GitViewState,
-  gitState?: GitState
+  gitState?: GitState,
+  app?: App
 ): void {
   container.empty();
   container.addClass("git-status-panel");
@@ -93,8 +95,31 @@ export function renderStatusPanel(
       upToDate.createEl("span", { text: "모든 내용이 최신 상태입니다" });
     }
   } else {
-    const noRemote = container.createEl("div", { cls: "git-no-remote" });
-    noRemote.createEl("span", { text: "원격 저장소 연결 안됨" });
+    const noRemote = container.createEl("div", { cls: "git-no-remote git-no-remote-action" });
+    const noRemoteContent = noRemote.createEl("div", { cls: "git-no-remote-content" });
+
+    const noRemoteIcon = noRemoteContent.createEl("span", { cls: "git-no-remote-icon" });
+    setIcon(noRemoteIcon, "cloud-off");
+
+    const noRemoteText = noRemoteContent.createEl("div", { cls: "git-no-remote-text" });
+    noRemoteText.createEl("span", {
+      cls: "git-no-remote-title",
+      text: "원격 저장소 연결 안됨",
+    });
+    noRemoteText.createEl("span", {
+      cls: "git-no-remote-hint",
+      text: "GitHub 등과 연결하면 백업과 협업이 가능해요",
+    });
+
+    if (gitState && app) {
+      const connectBtn = noRemote.createEl("button", {
+        cls: "git-btn git-btn-primary git-btn-sm",
+        text: "연결하기",
+      });
+      connectBtn.onclick = () => {
+        new AddRemoteModal(app, gitState).open();
+      };
+    }
   }
 
   // .gitignore 상태 확인 및 추가 버튼

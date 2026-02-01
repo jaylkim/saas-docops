@@ -103,12 +103,22 @@ src/settings/
 - 상태: ✅ 연결됨 | ❌ 오류 | ⏸️ 비활성 | 🔄 점검 중
 - 개별/전체 서버 상태 점검 버튼
 
-### Phase 5: Quick Actions 🔲
+### Phase 6: Project Management UI & 배포 고도화 ✅
+- [x] **Writer's Mode** 구현 (비개발자 친화적 Git UI)
+  - [x] 파일 목록 단순화 ("Changed Files" unified view)
+  - [x] Smart Sync Panel (컨텍스트 기반 "Save & Upload" 버튼)
+  - [x] Git 용어 순화 (Commit -> Save Version, Push -> Upload)
+- [x] **배포 스크립트 고도화**
+  - [x] `install.sh` 프로덕션 레벨 리팩토링 (set -euo, Homebrew 지원, 안전한 JSON 핸들링)
+  - [x] 백업 및 복원 로직 추가
+  - [x] 프로세스 관리 (Obsidian 종료 확인)
+
+### Phase 7: Quick Actions 🔲
 - [ ] Quick Actions UI (리본 또는 명령 팔레트)
 - [ ] 자주 쓰는 Claude 명령 원클릭 실행
 - [ ] 사용자 정의 액션
 
-### Phase 6: 팀 설정 & 문서화 🔲
+### Phase 8: 팀 설정 & 문서화 🔲
 - [ ] vault 내 팀 설정 공유 (.claude/, agents/, skills/)
 - [ ] 사용자 문서
 - [ ] 개발자 문서
@@ -124,6 +134,8 @@ src/settings/
 | `npm run deploy:test` | 빌드 후 테스트 vault로 배포 |
 | `npm run dev:watch` | watch + 자동 배포 (개발용) |
 | `npm run rebuild:electron` | node-pty ABI 재빌드 |
+| `scripts/package-release.sh` | 로컬 릴리스 패키징 (zip) |
+| `install.sh` | macOS 원클릭 설치 스크립트 |
 
 ### node-pty 재빌드 (Electron 버전 맞추기)
 ```bash
@@ -252,3 +264,16 @@ npm run deploy:test
     - 미완료 시 "건너뛰기" 버튼 유지
   - **접근성 개선**: 
     - 명령어 팔레트(`Cmd+P`)에 "설정 마법사 열기" 추가
+
+### 세션 9 (2025-02-01)
+- **Project Management UI Refinements**:
+  - Browser-like Tabs 디자인 적용 (시각적 계층 구조 강화)
+  - Tab Descriptions Content Header로 이동 (레이아웃 정리)
+- **Writer's Mode (비개발자 친화적 Git) 구현**:
+  - Git Jargon 제거 (Changes, Save Version, Upload)
+  - Unified File List (Staged/Untracked 구분 제거)
+  - Smart Sync Panel (컨텍스트 기반 원버튼 액션)
+- **배포 프로세스 고도화**:
+  - `install.sh` V2.1 리팩토링 (Homebrew 지원, 프로세스 관리, 안전성 강화)
+  - `scripts/package-release.sh` 검증 및 정합성 확인
+

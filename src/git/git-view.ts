@@ -252,7 +252,7 @@ export class GitView extends ItemView {
     const statusIcon = statusHeader.createEl("span", { cls: "git-section-icon" });
     setIcon(statusIcon, "activity");
     statusHeader.createEl("span", { text: " 현재 상태" });
-    renderStatusPanel(statusSection, state, this.gitState);
+    renderStatusPanel(statusSection, state, this.gitState, this.app);
 
     // 빠른 작업 패널
     const syncSection = container.createEl("div", { cls: "git-section" });

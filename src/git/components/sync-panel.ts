@@ -69,7 +69,8 @@ export function renderSyncPanel(
   }
 
   // 3. 최신 상태 (변경사항은 file-list/commit-form에서 처리)
-  if (status.ahead === 0 && status.behind === 0) {
+  // 원격 저장소가 있을 때만 "동기화됨" 메시지 표시
+  if (status.hasRemote && status.ahead === 0 && status.behind === 0) {
     const syncedEl = quickActions.createEl("div", {
       cls: "git-synced-message",
       attr: { style: "text-align: center; color: var(--text-muted); padding: 10px;" }

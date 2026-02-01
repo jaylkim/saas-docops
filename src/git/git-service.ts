@@ -886,4 +886,68 @@ npm-debug.log*
       };
     }
   }
+
+  /**
+   * 원격 저장소 추가 (Add Remote)
+   */
+  async addRemote(url: string, name = "origin"): Promise<GitOperationResult> {
+    try {
+      // URL 유효성 검사
+      if (!this.isValidRemoteUrl(url)) {
+        return {
+          success: false,
+          message: "유효하지 않은 URL 형식입니다",
+          error: "HTTPS (https://...) 또는 SSH (git@...) 형식으로 입력해주세요.",
+        };
+      }
+
+      // 기존 remote 확인
+      const remotes = await this.git.getRemotes(true);
+      const existing = remotes.find((r) => r.name === name);
+      if (existing) {
+        return {
+          success: false,
+          message: `'${name}' 원격 저장소가 이미 존재합니다`,
+          error: "다른 이름을 사용하거나 기존 연결을 삭제하세요.",
+        };
+      }
+
+      // remote 추가
+      await this.git.addRemote(name, url);
+
+      return {
+        success: true,
+        message: "원격 저장소가 연결되었습니다!",
+        details: `${name}: ${this.formatRemoteUrlForDisplay(url)}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "원격 저장소 연결 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * 원격 저장소 URL 유효성 검사
+   */
+  private isValidRemoteUrl(url: string): boolean {
+    // HTTPS format: https://github.com/owner/repo.git
+    const httpsPattern = /^https:\/\/[a-zA-Z0-9.-]+\/[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:\.git)?$/;
+    // SSH format: git@github.com:owner/repo.git
+    const sshPattern = /^git@[a-zA-Z0-9.-]+:[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+(?:\.git)?$/;
+
+    return httpsPattern.test(url) || sshPattern.test(url);
+  }
+
+  /**
+   * 원격 URL을 표시용으로 포맷
+   */
+  private formatRemoteUrlForDisplay(url: string): string {
+    return url
+      .replace(/^git@[^:]+:/, "")
+      .replace(/^https?:\/\/[^/]+\//, "")
+      .replace(/\.git$/, "");
+  }
 }
