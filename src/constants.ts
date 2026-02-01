@@ -41,12 +41,12 @@ export interface MCPServerConfig {
 // Plugin Settings Type
 export type IntegrationSettings = typeof DEFAULT_SETTINGS;
 
-// Icon Names
+// Icon Names (Lucide icon names)
 export const ICONS = {
-  terminal: "terminal",
+  terminal: "terminal-square",
   settings: "settings",
   sync: "refresh-cw",
-  slack: "send",
+  slack: "message-square",
   confluence: "file-text",
   git: "users",
 } as const;

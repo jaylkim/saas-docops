@@ -4,7 +4,7 @@
  * Claude Code 사용을 위한 API 키 확인 및 설정
  */
 
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import type { WizardStep, WizardState } from "../setup-wizard-modal";
 import { EnvironmentChecker, type ShellEnvVarInfo } from "../environment-checker";
 
@@ -22,7 +22,10 @@ export function renderClaudeLoginStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "🔑 API 키 설정", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "key");
+  titleEl.createSpan({ text: " API 키 설정" });
   container.createEl("p", {
     text: "Claude Code 사용을 위해 API 키가 필요합니다.",
     cls: "wizard-step-desc",
@@ -34,18 +37,27 @@ export function renderClaudeLoginStep(
   // Check API key in shell config
   if (!apiKeyInfo && !isChecking) {
     isChecking = true;
-    statusContainer.createEl("p", { text: "⏳ API 키를 확인하고 있습니다..." });
+    const loadingP = statusContainer.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " API 키를 확인하고 있습니다..." });
 
     checker.checkAnthropicApiKey().then((info) => {
       apiKeyInfo = info;
       isChecking = false;
+      if (info && info.found) {
+        updateState({ apiKeyConfigured: true });
+      }
       renderClaudeLoginStep(container, state, updateState, callbacks);
     });
     return;
   }
 
   if (isChecking) {
-    statusContainer.createEl("p", { text: "⏳ API 키를 확인하고 있습니다..." });
+    const loadingP = statusContainer.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " API 키를 확인하고 있습니다..." });
     return;
   }
 
@@ -53,19 +65,23 @@ export function renderClaudeLoginStep(
 
   // Status display
   if (apiKeyInfo.found) {
+    if (!state.apiKeyConfigured) {
+      setTimeout(() => updateState({ apiKeyConfigured: true }), 0);
+    }
     // API key found
     const successBox = statusContainer.createDiv({ cls: "wizard-status-box status-success" });
-    successBox.createEl("div", { text: "✅", cls: "status-icon" });
+    const successIcon = successBox.createEl("div", { cls: "status-icon" });
+    setIcon(successIcon, "check-circle");
     const content = successBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "API 키 설정됨" });
 
     const keyDisplay = content.createDiv({ cls: "api-key-display" });
     keyDisplay.createEl("code", { text: apiKeyInfo.maskedValue });
 
-    content.createEl("p", {
-      text: `📁 ${apiKeyInfo.source}`,
-      cls: "status-hint",
-    });
+    const hintP = content.createEl("p", { cls: "status-hint" });
+    const folderIcon = hintP.createSpan({ cls: "status-hint-icon" });
+    setIcon(folderIcon, "folder");
+    hintP.createSpan({ text: ` ${apiKeyInfo.source}` });
 
     // Option to change
     const changeSection = container.createDiv({ cls: "wizard-login-option" });
@@ -78,7 +94,8 @@ export function renderClaudeLoginStep(
   } else {
     // API key not found
     const warningBox = statusContainer.createDiv({ cls: "wizard-status-box status-warning" });
-    warningBox.createEl("div", { text: "⚠️", cls: "status-icon" });
+    const warningIcon = warningBox.createEl("div", { cls: "status-icon" });
+    setIcon(warningIcon, "alert-triangle");
     const content = warningBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "API 키가 설정되지 않았습니다" });
     content.createEl("p", {
@@ -110,9 +127,11 @@ export function renderClaudeLoginStep(
   // Re-check button
   const actionsRow = container.createDiv({ cls: "wizard-actions-row" });
   const recheckBtn = actionsRow.createEl("button", {
-    text: "🔄 다시 확인",
     cls: "wizard-btn wizard-btn-text",
   });
+  const recheckIcon = recheckBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(recheckIcon, "refresh-cw");
+  recheckBtn.createSpan({ text: " 다시 확인" });
   recheckBtn.addEventListener("click", () => {
     apiKeyInfo = null;
     isChecking = false;
@@ -162,16 +181,23 @@ function renderApiKeyInput(
     const result = await checker.saveAnthropicApiKey(value);
 
     if (result.success) {
-      statusEl.textContent = `✅ ${result.path}에 저장됨`;
+      statusEl.empty();
+      const successIcon = statusEl.createSpan({ cls: "wizard-status-icon" });
+      setIcon(successIcon, "check-circle");
+      statusEl.createSpan({ text: ` ${result.path}에 저장됨` });
       statusEl.className = "wizard-save-status success";
       new Notice("API 키가 저장되었습니다");
 
       // Refresh after short delay
       setTimeout(() => {
+        // Assume success leads to found key on next check
         onSaved();
       }, 1000);
     } else {
-      statusEl.textContent = `❌ ${result.error}`;
+      statusEl.empty();
+      const errorIcon = statusEl.createSpan({ cls: "wizard-status-icon" });
+      setIcon(errorIcon, "x-circle");
+      statusEl.createSpan({ text: ` ${result.error}` });
       statusEl.className = "wizard-save-status error";
       saveBtn.disabled = false;
       saveBtn.textContent = "저장";

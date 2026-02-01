@@ -2,9 +2,9 @@
  * Status Panel - 현재 상태 표시
  */
 
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICONS, GIT_TERMS } from "../git-types";
+import { GitViewState, GIT_ICON_NAMES, GIT_TERMS } from "../git-types";
 
 export function renderStatusPanel(
   container: HTMLElement,
@@ -15,16 +15,17 @@ export function renderStatusPanel(
   container.addClass("git-status-panel");
 
   if (state.loading) {
-    container.createEl("div", {
-      cls: "git-loading",
-      text: `${GIT_ICONS.loading} 상태 확인 중...`,
-    });
+    const loadingEl = container.createEl("div", { cls: "git-loading" });
+    const loadingIcon = loadingEl.createEl("span", { cls: "git-loading-icon" });
+    setIcon(loadingIcon, GIT_ICON_NAMES.loading);
+    loadingEl.createEl("span", { text: " 상태 확인 중..." });
     return;
   }
 
   if (state.error) {
     const errorBox = container.createEl("div", { cls: "git-error-box" });
-    errorBox.createEl("span", { cls: "git-error-icon", text: GIT_ICONS.error });
+    const errorIcon = errorBox.createEl("span", { cls: "git-error-icon" });
+    setIcon(errorIcon, GIT_ICON_NAMES.error);
     errorBox.createEl("span", { cls: "git-error-text", text: state.error });
     return;
   }
@@ -41,7 +42,8 @@ export function renderStatusPanel(
 
   // 현재 작업 공간 (브랜치)
   const branchBox = container.createEl("div", { cls: "git-branch-box" });
-  branchBox.createEl("span", { cls: "git-branch-icon", text: status.isMainBranch ? GIT_ICONS.main : GIT_ICONS.branch });
+  const branchIcon = branchBox.createEl("span", { cls: "git-branch-icon" });
+  setIcon(branchIcon, status.isMainBranch ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
 
   const branchInfo = branchBox.createEl("div", { cls: "git-branch-info" });
   branchInfo.createEl("span", { cls: "git-branch-label", text: GIT_TERMS.branch });
@@ -54,7 +56,8 @@ export function renderStatusPanel(
   // main 브랜치 직접 작업 경고
   if (status.isMainBranch && (status.staged.length > 0 || status.modified.length > 0)) {
     const warning = container.createEl("div", { cls: "git-warning-box" });
-    warning.createEl("span", { cls: "git-warning-icon", text: GIT_ICONS.warning });
+    const warningIcon = warning.createEl("span", { cls: "git-warning-icon" });
+    setIcon(warningIcon, GIT_ICON_NAMES.warning);
     warning.createEl("span", {
       cls: "git-warning-text",
       text: "메인 브랜치에서 직접 작업 중입니다. 새 작업 공간을 만드는 것이 좋습니다."
@@ -67,7 +70,8 @@ export function renderStatusPanel(
 
     if (status.behind > 0) {
       const pullInfo = syncBox.createEl("div", { cls: "git-sync-item git-sync-behind" });
-      pullInfo.createEl("span", { cls: "git-sync-icon", text: GIT_ICONS.pull });
+      const pullIcon = pullInfo.createEl("span", { cls: "git-sync-icon" });
+      setIcon(pullIcon, GIT_ICON_NAMES.pull);
       pullInfo.createEl("span", {
         text: `${status.behind}개 ${GIT_TERMS.behind} 있음 (가져오기 필요)`
       });
@@ -75,7 +79,8 @@ export function renderStatusPanel(
 
     if (status.ahead > 0) {
       const pushInfo = syncBox.createEl("div", { cls: "git-sync-item git-sync-ahead" });
-      pushInfo.createEl("span", { cls: "git-sync-icon", text: GIT_ICONS.push });
+      const pushIcon = pushInfo.createEl("span", { cls: "git-sync-icon" });
+      setIcon(pushIcon, GIT_ICON_NAMES.push);
       pushInfo.createEl("span", {
         text: `${status.ahead}개 ${GIT_TERMS.ahead} 있음 (올리기 필요)`
       });
@@ -83,7 +88,8 @@ export function renderStatusPanel(
 
     if (status.ahead === 0 && status.behind === 0) {
       const upToDate = syncBox.createEl("div", { cls: "git-sync-item git-sync-uptodate" });
-      upToDate.createEl("span", { cls: "git-sync-icon", text: GIT_ICONS.success });
+      const successIcon = upToDate.createEl("span", { cls: "git-sync-icon" });
+      setIcon(successIcon, GIT_ICON_NAMES.success);
       upToDate.createEl("span", { text: "팀과 동기화 완료" });
     }
   } else {
@@ -97,7 +103,8 @@ export function renderStatusPanel(
 
     if (!hasGitignore) {
       const gitignoreWarning = container.createEl("div", { cls: "git-gitignore-warning" });
-      gitignoreWarning.createEl("span", { cls: "git-warning-icon", text: "🛡️" });
+      const shieldIcon = gitignoreWarning.createEl("span", { cls: "git-warning-icon" });
+      setIcon(shieldIcon, "shield");
 
       const warningContent = gitignoreWarning.createEl("div", { cls: "git-gitignore-content" });
       warningContent.createEl("span", {
@@ -117,8 +124,7 @@ export function renderStatusPanel(
         addBtn.removeClass("git-btn-loading");
         addBtn.disabled = false;
 
-        const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
-        new Notice(`${icon} ${result.message}`);
+        new Notice(result.message);
       };
     }
   }
@@ -128,15 +134,15 @@ export function renderStatusPanel(
 
   const totalChanges = status.files.length;
   if (totalChanges === 0) {
-    fileSummary.createEl("div", {
-      cls: "git-no-changes",
-      text: `${GIT_ICONS.success} 변경사항 없음`
-    });
+    const noChangesEl = fileSummary.createEl("div", { cls: "git-no-changes" });
+    const noChangesIcon = noChangesEl.createEl("span");
+    setIcon(noChangesIcon, GIT_ICON_NAMES.success);
+    noChangesEl.createEl("span", { text: " 변경사항 없음" });
   } else {
-    fileSummary.createEl("div", {
-      cls: "git-changes-count",
-      text: `${GIT_ICONS.file} ${totalChanges}개 파일 변경됨`
-    });
+    const changesCountEl = fileSummary.createEl("div", { cls: "git-changes-count" });
+    const fileIcon = changesCountEl.createEl("span");
+    setIcon(fileIcon, GIT_ICON_NAMES.file);
+    changesCountEl.createEl("span", { text: ` ${totalChanges}개 파일 변경됨` });
 
     const details = fileSummary.createEl("div", { cls: "git-changes-details" });
 
@@ -162,10 +168,10 @@ export function renderStatusPanel(
     }
 
     if (status.conflicted.length > 0) {
-      details.createEl("span", {
-        cls: "git-detail-item git-conflicted",
-        text: `${GIT_ICONS.conflict} 충돌: ${status.conflicted.length}`
-      });
+      const conflictEl = details.createEl("span", { cls: "git-detail-item git-conflicted" });
+      const conflictIcon = conflictEl.createEl("span");
+      setIcon(conflictIcon, GIT_ICON_NAMES.conflict);
+      conflictEl.createEl("span", { text: ` 충돌: ${status.conflicted.length}` });
     }
   }
 }

@@ -4,6 +4,7 @@
  * 설정 요약 및 다음 단계 안내
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState } from "../setup-wizard-modal";
 
 export function renderCompleteStep(
@@ -15,7 +16,8 @@ export function renderCompleteStep(
 
   // Hero
   const hero = container.createDiv({ cls: "wizard-complete-hero" });
-  hero.createEl("div", { text: "🎉", cls: "complete-icon" });
+  const heroIcon = hero.createEl("div", { cls: "complete-icon" });
+  setIcon(heroIcon, "check-circle-2");
   hero.createEl("h2", { text: "설정이 완료되었습니다!" });
 
   // Summary
@@ -44,16 +46,16 @@ export function renderCompleteStep(
   addSummaryItem(
     summaryList,
     "Slack 연동",
-    state.slackBotToken ? "설정됨" : "건너뜀",
-    state.slackBotToken ? "success" : "neutral"
+    state.slackConfigured ? "설정됨" : "건너뜀",
+    state.slackConfigured ? "success" : "neutral"
   );
 
-  // Atlassian (OAuth-based, shown as placeholder - actual status from MCP config)
+  // Atlassian
   addSummaryItem(
     summaryList,
     "Atlassian 연동",
-    "MCP 서버 확인 필요",
-    "neutral"
+    state.atlassianConfigured ? "설정됨" : "건너뜀",
+    state.atlassianConfigured ? "success" : "neutral"
   );
 
   // SSH
@@ -70,7 +72,7 @@ export function renderCompleteStep(
 
   const steps = nextSteps.createDiv({ cls: "wizard-numbered-steps" });
   const nextStepItems = [
-    "사이드바에서 터미널 아이콘(💻)을 클릭하세요",
+    "사이드바에서 터미널 아이콘을 클릭하세요",
     "터미널에서 claude 명령으로 Claude Code를 시작하세요",
     "질문이 있으면 claude /help 를 입력하세요",
   ];
@@ -83,17 +85,20 @@ export function renderCompleteStep(
 
   // Tips
   const tips = container.createDiv({ cls: "wizard-tips" });
-  tips.createEl("h4", { text: "💡 팁" });
+  const tipsHeader = tips.createEl("h4");
+  const tipsIcon = tipsHeader.createSpan({ cls: "wizard-tips-icon" });
+  setIcon(tipsIcon, "lightbulb");
+  tipsHeader.createSpan({ text: " 팁" });
   const tipsList = tips.createEl("ul");
   tipsList.createEl("li", { text: "Cmd/Ctrl + P → 'SaaS DocOps' 검색으로 빠르게 터미널을 열 수 있습니다" });
   tipsList.createEl("li", { text: "설정 탭에서 언제든지 API 키나 연동 설정을 변경할 수 있습니다" });
   tipsList.createEl("li", { text: "마법사는 설정 탭에서 다시 실행할 수 있습니다" });
 
   // Completion note
-  container.createEl("p", {
-    text: "✨ \"완료\" 버튼을 클릭하면 설정이 저장되고 터미널이 열립니다.",
-    cls: "wizard-note wizard-complete-note",
-  });
+  const noteEl = container.createEl("p", { cls: "wizard-note wizard-complete-note" });
+  const noteIcon = noteEl.createSpan({ cls: "wizard-note-icon" });
+  setIcon(noteIcon, "sparkles");
+  noteEl.createSpan({ text: " \"완료\" 버튼을 클릭하면 설정이 저장되고 터미널이 열립니다." });
 }
 
 function addSummaryItem(

@@ -5,6 +5,7 @@
  * https://www.atlassian.com/platform/remote-mcp-server
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState, WizardCallbacks } from "../setup-wizard-modal";
 import { EnvironmentChecker } from "../environment-checker";
 
@@ -19,7 +20,10 @@ export function renderAtlassianSetupStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "📄 Atlassian 연동 설정", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "file-text");
+  titleEl.createSpan({ text: " Atlassian 연동 설정" });
   container.createEl("p", {
     text: "공식 Atlassian MCP 서버를 사용하여 Confluence와 Jira를 연동합니다.",
     cls: "wizard-step-desc",
@@ -30,46 +34,67 @@ export function renderAtlassianSetupStep(
   const configLevel = callbacks?.plugin?.settings.mcpConfigLevel || state.mcpConfigLevel || "user";
   checker.setConfigLevel(configLevel, callbacks?.vaultPath);
 
+  // Use state or local cache
+  if (state.atlassianConfigured && isConfigured === null) {
+    isConfigured = true;
+  }
+
   // Check current status
   if (isConfigured === null && !isChecking) {
     isChecking = true;
     checker.hasMCPServer("atlassian").then((exists) => {
       isConfigured = exists;
+      if (isConfigured) {
+        updateState({ atlassianConfigured: true });
+      }
       isChecking = false;
       renderAtlassianSetupStep(container, state, updateState, callbacks);
     });
 
-    container.createEl("p", { text: "⏳ 설정 상태를 확인하고 있습니다..." });
+    const loadingP = container.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " 설정 상태를 확인하고 있습니다..." });
     return;
   }
 
   if (isChecking) {
-    container.createEl("p", { text: "⏳ 설정 상태를 확인하고 있습니다..." });
+    const loadingP = container.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " 설정 상태를 확인하고 있습니다..." });
     return;
   }
 
   // Already configured
   if (isConfigured) {
+    if (!state.atlassianConfigured) {
+      setTimeout(() => updateState({ atlassianConfigured: true }), 0);
+    }
     const successBox = container.createDiv({ cls: "wizard-status-box status-success" });
-    successBox.createEl("div", { text: "✅", cls: "status-icon" });
+    const successIcon = successBox.createEl("div", { cls: "status-icon" });
+    setIcon(successIcon, "check-circle");
     const content = successBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "Atlassian MCP가 설정되어 있습니다" });
     content.createEl("p", { text: "터미널에서 /mcp 명령으로 인증 상태를 확인하세요." });
 
     // Authentication instructions
     const authNote = container.createDiv({ cls: "wizard-info-box" });
-    authNote.innerHTML = `
-      <h4>🔑 인증 방법</h4>
-      <p>터미널에서 Claude Code를 실행하면 처음 Atlassian 도구 사용 시 자동으로 브라우저 인증 창이 열립니다.</p>
-      <code>claude</code>
-    `;
+    const authTitle = authNote.createEl("h4");
+    const authIcon = authTitle.createSpan({ cls: "wizard-info-icon" });
+    setIcon(authIcon, "key");
+    authTitle.createSpan({ text: " 인증 방법" });
+    authNote.createEl("p", { text: "터미널에서 Claude Code를 실행하면 처음 Atlassian 도구 사용 시 자동으로 브라우저 인증 창이 열립니다." });
+    authNote.createEl("code", { text: "claude" });
 
     const btnContainer = container.createDiv({ cls: "wizard-btn-group" });
 
     const resetBtn = btnContainer.createEl("button", {
-      text: "🔄 다시 설정",
       cls: "wizard-btn wizard-btn-secondary",
     });
+    const resetIcon = resetBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(resetIcon, "refresh-cw");
+    resetBtn.createSpan({ text: " 다시 설정" });
     resetBtn.addEventListener("click", async () => {
       await checker.removeMCPServer("atlassian");
       isConfigured = false;
@@ -77,9 +102,11 @@ export function renderAtlassianSetupStep(
     });
 
     const deleteBtn = btnContainer.createEl("button", {
-      text: "🗑️ 삭제",
       cls: "wizard-btn wizard-btn-danger",
     });
+    const deleteIcon = deleteBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(deleteIcon, "trash-2");
+    deleteBtn.createSpan({ text: " 삭제" });
     deleteBtn.addEventListener("click", async () => {
       if (confirm("Atlassian MCP 서버를 삭제하시겠습니까?")) {
         await checker.removeMCPServer("atlassian");
@@ -92,15 +119,24 @@ export function renderAtlassianSetupStep(
 
   // OAuth setup explanation
   const infoBox = container.createDiv({ cls: "wizard-info-box" });
-  infoBox.innerHTML = `
-    <h4>🔐 공식 Atlassian MCP (OAuth 2.1)</h4>
-    <ul>
-      <li>✅ 브라우저에서 Atlassian 로그인</li>
-      <li>✅ API 토큰 불필요</li>
-      <li>✅ Jira, Confluence 자동 연동</li>
-      <li>✅ 보안성 향상 (토큰 자동 갱신)</li>
-    </ul>
-  `;
+  const infoTitle = infoBox.createEl("h4");
+  const infoIcon = infoTitle.createSpan({ cls: "wizard-info-icon" });
+  setIcon(infoIcon, "lock");
+  infoTitle.createSpan({ text: " 공식 Atlassian MCP (OAuth 2.1)" });
+
+  const infoList = infoBox.createEl("ul");
+  const checkItems = [
+    "브라우저에서 Atlassian 로그인",
+    "API 토큰 불필요",
+    "Jira, Confluence 자동 연동",
+    "보안성 향상 (토큰 자동 갱신)",
+  ];
+  for (const text of checkItems) {
+    const li = infoList.createEl("li");
+    const checkIcon = li.createSpan({ cls: "wizard-check-icon" });
+    setIcon(checkIcon, "check");
+    li.createSpan({ text: ` ${text}` });
+  }
 
   // Setup guide
   const guide = container.createDiv({ cls: "wizard-setup-guide" });
@@ -116,9 +152,11 @@ export function renderAtlassianSetupStep(
 
   const addBtnContainer = step1Content.createDiv({ cls: "guide-actions" });
   const addBtn = addBtnContainer.createEl("button", {
-    text: "📄 Atlassian MCP 서버 추가",
     cls: "wizard-btn wizard-btn-primary",
   });
+  const addBtnIcon = addBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(addBtnIcon, "file-text");
+  addBtn.createSpan({ text: " Atlassian MCP 서버 추가" });
 
   const saveStatus = addBtnContainer.createSpan({ cls: "save-status" });
 
@@ -133,19 +171,30 @@ export function renderAtlassianSetupStep(
     });
 
     if (success) {
-      saveStatus.setText("✅ 추가되었습니다!");
+      saveStatus.empty();
+      const successStatusIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(successStatusIcon, "check-circle");
+      saveStatus.createSpan({ text: " 추가되었습니다!" });
       saveStatus.removeClass("error");
       saveStatus.addClass("success");
+      saveStatus.addClass("success");
       isConfigured = true;
+      updateState({ atlassianConfigured: true });
 
       setTimeout(() => {
         renderAtlassianSetupStep(container, state, updateState, callbacks);
       }, 1500);
     } else {
-      saveStatus.setText("❌ 추가 실패");
+      saveStatus.empty();
+      const errorStatusIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(errorStatusIcon, "x-circle");
+      saveStatus.createSpan({ text: " 추가 실패" });
       saveStatus.addClass("error");
       addBtn.disabled = false;
-      addBtn.setText("📄 Atlassian MCP 서버 추가");
+      addBtn.empty();
+      const newIcon = addBtn.createSpan({ cls: "wizard-btn-icon" });
+      setIcon(newIcon, "file-text");
+      addBtn.createSpan({ text: " Atlassian MCP 서버 추가" });
     }
   });
 
@@ -171,9 +220,14 @@ export function renderAtlassianSetupStep(
 
   // Note about MCP command
   const noteBox = container.createDiv({ cls: "wizard-note-box" });
-  noteBox.innerHTML = `
-    <p>💡 <strong>Tip:</strong> 터미널에서 <code>/mcp</code> 명령으로 MCP 서버 상태를 확인할 수 있습니다.</p>
-  `;
+  const noteP = noteBox.createEl("p");
+  const noteIcon = noteP.createSpan({ cls: "wizard-note-icon" });
+  setIcon(noteIcon, "lightbulb");
+  noteP.createSpan({ text: " " });
+  noteP.createEl("strong", { text: "Tip:" });
+  noteP.createSpan({ text: " 터미널에서 " });
+  noteP.createEl("code", { text: "/mcp" });
+  noteP.createSpan({ text: " 명령으로 MCP 서버 상태를 확인할 수 있습니다." });
 }
 
 export function resetAtlassianSetupStatus(): void {

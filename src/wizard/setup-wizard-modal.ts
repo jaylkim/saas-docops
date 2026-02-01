@@ -13,7 +13,7 @@ import type { MCPConfigLevel } from "../constants";
 import { welcomeStep } from "./steps/welcome-step";
 import { environmentCheckStep, resetEnvironmentCheckResults } from "./steps/environment-check-step";
 import { claudeLoginStep, resetClaudeLoginStatus } from "./steps/claude-login-step";
-import { mcpConfigStep, resetMcpConfigStatus } from "./steps/mcp-config-step";
+// mcpConfigStep removed - merged into welcome step
 import { slackSetupStep, resetSlackSetupStatus } from "./steps/slack-setup-step";
 import { atlassianSetupStep, resetAtlassianSetupStatus } from "./steps/atlassian-setup-step";
 import { bitbucketSSHStep, resetBitbucketSSHStatus } from "./steps/bitbucket-ssh-step";
@@ -34,6 +34,14 @@ export interface WizardState {
 
   // SSH
   sshKeyInfo?: SSHKeyInfo;
+
+  // New flags for skipping
+  slackSkipped?: boolean;
+  atlassianSkipped?: boolean;
+
+  // Configured flags
+  slackConfigured?: boolean;
+  atlassianConfigured?: boolean;
 }
 
 export interface WizardStep {
@@ -72,7 +80,7 @@ export class SetupWizardModal extends Modal {
       welcomeStep,
       environmentCheckStep,
       claudeLoginStep,
-      mcpConfigStep,
+      // mcpConfigStep removed (index 3)
       slackSetupStep,
       atlassianSetupStep,
       bitbucketSSHStep,
@@ -104,7 +112,7 @@ export class SetupWizardModal extends Modal {
   private resetAllStepStates(): void {
     resetEnvironmentCheckResults();
     resetClaudeLoginStatus();
-    resetMcpConfigStatus();
+    // resetMcpConfigStatus(); // Step removed
     resetSlackSetupStatus();
     resetAtlassianSetupStatus();
     resetBitbucketSSHStatus();
@@ -176,16 +184,42 @@ export class SetupWizardModal extends Modal {
     };
 
     // Render step
-    step.render(this.stepContentEl, this.state, this.updateState.bind(this), callbacks);
+    step.render(this.stepContentEl, this.state, (updates) => {
+      this.updateState(updates);
+      // Re-render navigation buttons when state changes to update "Skip" vs "Next"
+      this.renderNavigation();
+    }, callbacks);
 
     // Navigation
     this.renderNavigation();
     this.updateProgressIndicator();
   }
 
+  private isStepCompleted(stepId: string): boolean {
+    switch (stepId) {
+      case "welcome":
+      case "environment-check":
+      case "complete":
+        return true;
+      case "claude-login":
+        return !!this.state.apiKeyConfigured; // Assuming this state is set
+      case "slack-setup":
+        return !!this.state.slackConfigured;
+      case "atlassian-setup":
+        return !!this.state.atlassianConfigured;
+      case "bitbucket-ssh":
+        return !!this.state.sshKeyInfo;
+      default:
+        return false;
+    }
+  }
+
   private renderNavigation(): void {
+    this.footerEl.empty(); // Clear existing buttons
+
     const isFirst = this.currentStep === 0;
     const isLast = this.currentStep === this.steps.length - 1;
+    const currentStepId = this.steps[this.currentStep].id;
 
     // Left: Previous button
     if (!isFirst) {
@@ -202,17 +236,8 @@ export class SetupWizardModal extends Modal {
     const stepIndicator = this.footerEl.createDiv({ cls: "wizard-step-indicator" });
     stepIndicator.setText(`${this.currentStep + 1} / ${this.steps.length}`);
 
-    // Right: Skip or Next/Complete
+    // Right: Action buttons
     const rightActions = this.footerEl.createDiv({ cls: "wizard-right-actions" });
-
-    // Skip button for optional steps (3-5)
-    if (this.currentStep >= 2 && this.currentStep <= 5) {
-      const skipBtn = rightActions.createEl("button", {
-        text: "건너뛰기",
-        cls: "wizard-btn wizard-btn-text",
-      });
-      skipBtn.addEventListener("click", () => this.nextStep());
-    }
 
     if (isLast) {
       const completeBtn = rightActions.createEl("button", {
@@ -220,13 +245,24 @@ export class SetupWizardModal extends Modal {
         cls: "wizard-btn wizard-btn-primary",
       });
       completeBtn.addEventListener("click", () => this.complete());
-    } else {
-      const nextBtn = rightActions.createEl("button", {
-        text: "다음 →",
-        cls: "wizard-btn wizard-btn-primary",
-      });
-      nextBtn.addEventListener("click", () => this.nextStep());
+      return;
     }
+
+    // Dynamic "Skip" vs "Next" Logic
+    // If step is mandatory or user has completed it, show "Next".
+    // If step is optional and NOT completed, show "Skip".
+
+    // Check specific states mapping
+    const isComplete = this.isStepCompleted(currentStepId);
+
+    const btnText = isComplete ? "다음 →" : "건너뛰기";
+    const btnCls = isComplete ? "wizard-btn wizard-btn-primary" : "wizard-btn wizard-btn-text";
+
+    const actionBtn = rightActions.createEl("button", {
+      text: btnText,
+      cls: btnCls,
+    });
+    actionBtn.addEventListener("click", () => this.nextStep());
   }
 
   private updateState(updates: Partial<WizardState>): void {
@@ -264,23 +300,42 @@ export class SetupWizardModal extends Modal {
     }, 500);
   }
 
-  private runCommandInTerminal(command: string): void {
+  private async runCommandInTerminal(command: string): Promise<void> {
     // Close wizard
     this.close();
 
-    // Open terminal and run command
     new Notice(`터미널에서 실행: ${command}`);
 
-    this.plugin.activateView("integration-terminal-view").then(() => {
-      // Give terminal time to initialize
-      setTimeout(() => {
-        // Send command to terminal (this requires terminal view to expose a method)
-        const event = new CustomEvent("saas-docops:run-command", {
-          detail: { command },
-        });
-        window.dispatchEvent(event);
-      }, 1000);
-    });
+    // Activate view
+    await this.plugin.activateView("integration-terminal-view");
+
+    // Helper to find terminal view
+    const findTerminalView = () => {
+      const leaves = this.app.workspace.getLeavesOfType("integration-terminal-view");
+      if (leaves.length > 0) {
+        return leaves[0].view as any; // Using any to access isReady/writeToTerminal methods
+      }
+      return null;
+    };
+
+    // Poll for terminal readiness
+    const checkInterval = 100;
+    const maxAttempts = 50; // 5 seconds timeout
+    let attempts = 0;
+
+    const poll = setInterval(() => {
+      attempts++;
+      const view = findTerminalView();
+
+      if (view && view.isReady) {
+        clearInterval(poll);
+        // Send command
+        view.writeToTerminal(command + "\r");
+      } else if (attempts >= maxAttempts) {
+        clearInterval(poll);
+        new Notice("터미널 초기화 시간 초과. 명령어를 직접 입력해주세요.");
+      }
+    }, checkInterval);
   }
 
   private openTerminal(): void {

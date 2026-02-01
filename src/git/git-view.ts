@@ -2,11 +2,11 @@
  * Git View - 비개발자 친화 Git 워크플로 UI
  */
 
-import { ItemView, WorkspaceLeaf, Notice } from "obsidian";
+import { ItemView, WorkspaceLeaf, Notice, setIcon } from "obsidian";
 import { GitOperationResult } from "./git-types";
 import type IntegrationAIPlugin from "../main";
 import { GitState } from "./git-state";
-import { GitViewState, GIT_ICONS } from "./git-types";
+import { GitViewState, GIT_ICONS, GIT_ICON_NAMES } from "./git-types";
 import {
   renderStatusPanel,
   renderSyncPanel,
@@ -23,15 +23,15 @@ type TabId = "home" | "workspace" | "review" | "conflict";
 
 interface TabConfig {
   id: TabId;
-  icon: string;
+  iconName: string;
   label: string;
 }
 
 const TABS: TabConfig[] = [
-  { id: "home", icon: "🏠", label: "홈" },
-  { id: "workspace", icon: "🌿", label: "작업 공간" },
-  { id: "review", icon: "📝", label: "검토 요청" },
-  { id: "conflict", icon: "⚠️", label: "충돌 해결" },
+  { id: "home", iconName: "home", label: "홈" },
+  { id: "workspace", iconName: "git-branch", label: "작업 공간" },
+  { id: "review", iconName: "file-edit", label: "검토 요청" },
+  { id: "conflict", iconName: "alert-triangle", label: "충돌 해결" },
 ];
 
 export class GitView extends ItemView {
@@ -121,7 +121,8 @@ export class GitView extends ItemView {
 
     // 제목
     const title = header.createEl("div", { cls: "git-view-title" });
-    title.createEl("span", { cls: "git-view-icon", text: GIT_ICONS.sync });
+    const titleIcon = title.createEl("span", { cls: "git-view-icon" });
+    setIcon(titleIcon, "refresh-cw");
     title.createEl("span", { text: "협업" });
 
     // 헤더 액션
@@ -132,7 +133,8 @@ export class GitView extends ItemView {
       cls: "git-header-btn",
       attr: { title: "새로고침" }
     });
-    refreshBtn.createEl("span", { text: "🔄" });
+    const refreshIcon = refreshBtn.createEl("span");
+    setIcon(refreshIcon, "refresh-cw");
 
     refreshBtn.onclick = async () => {
       refreshBtn.addClass("git-btn-spin");
@@ -145,7 +147,8 @@ export class GitView extends ItemView {
       cls: "git-header-btn",
       attr: { title: "설정" }
     });
-    settingsBtn.createEl("span", { text: "⚙️" });
+    const settingsIcon = settingsBtn.createEl("span");
+    setIcon(settingsIcon, "settings");
 
     settingsBtn.onclick = () => {
       // 설정 탭 열기
@@ -161,7 +164,8 @@ export class GitView extends ItemView {
         cls: `git-tab ${this.activeTab === tab.id ? "git-tab-active" : ""}`
       });
 
-      tabBtn.createEl("span", { cls: "git-tab-icon", text: tab.icon });
+      const iconSpan = tabBtn.createEl("span", { cls: "git-tab-icon" });
+      setIcon(iconSpan, tab.iconName);
       tabBtn.createEl("span", { cls: "git-tab-label", text: tab.label });
 
       // 충돌 탭에 배지 표시
@@ -211,12 +215,18 @@ export class GitView extends ItemView {
 
     // 상태 패널
     const statusSection = container.createEl("div", { cls: "git-section" });
-    statusSection.createEl("div", { cls: "git-section-header", text: "📊 현재 상태" });
+    const statusHeader = statusSection.createEl("div", { cls: "git-section-header" });
+    const statusIcon = statusHeader.createEl("span", { cls: "git-section-icon" });
+    setIcon(statusIcon, "activity");
+    statusHeader.createEl("span", { text: " 현재 상태" });
     renderStatusPanel(statusSection, state, this.gitState);
 
     // 빠른 작업 패널
     const syncSection = container.createEl("div", { cls: "git-section" });
-    syncSection.createEl("div", { cls: "git-section-header", text: "🚀 빠른 작업" });
+    const syncHeader = syncSection.createEl("div", { cls: "git-section-header" });
+    const syncIcon = syncHeader.createEl("span", { cls: "git-section-icon" });
+    setIcon(syncIcon, "zap");
+    syncHeader.createEl("span", { text: " 빠른 작업" });
     renderSyncPanel(syncSection, state, this.gitState);
 
     // 파일 목록
@@ -233,7 +243,8 @@ export class GitView extends ItemView {
 
     // 아이콘과 제목
     const hero = initPanel.createEl("div", { cls: "git-init-hero" });
-    hero.createEl("div", { cls: "git-init-icon", text: "📁" });
+    const heroIcon = hero.createEl("div", { cls: "git-init-icon" });
+    setIcon(heroIcon, "folder");
     hero.createEl("h2", { text: "Git 저장소가 아닙니다" });
     hero.createEl("p", {
       cls: "git-init-desc",
@@ -242,7 +253,10 @@ export class GitView extends ItemView {
 
     // 설명
     const info = initPanel.createEl("div", { cls: "git-init-info" });
-    info.createEl("h4", { text: "💡 Git이란?" });
+    const infoHeader = info.createEl("h4");
+    const infoIcon = infoHeader.createEl("span");
+    setIcon(infoIcon, "lightbulb");
+    infoHeader.createEl("span", { text: " Git이란?" });
     info.createEl("p", {
       text: "Git은 파일의 변경 이력을 관리하고, 팀원들과 협업할 수 있게 해주는 도구입니다."
     });
@@ -259,7 +273,8 @@ export class GitView extends ItemView {
     const initBtn = actions.createEl("button", {
       cls: "git-btn git-btn-primary git-btn-large"
     });
-    initBtn.createEl("span", { cls: "git-btn-icon", text: "🚀" });
+    const initBtnIcon = initBtn.createEl("span", { cls: "git-btn-icon" });
+    setIcon(initBtnIcon, "play");
     initBtn.createEl("span", { text: "Git 저장소 시작하기" });
 
     initBtn.onclick = async () => {
@@ -273,8 +288,7 @@ export class GitView extends ItemView {
       initBtn.removeClass("git-btn-loading");
       initBtn.disabled = false;
 
-      const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
-      new Notice(`${icon} ${result.message}`);
+      new Notice(result.message);
 
       if (result.success) {
         // 상태 새로고침

@@ -236,3 +236,19 @@ npm run deploy:test
 - CSS 추가:
   - `.mcp-health-*` 상태별 스타일
   - `@keyframes mcp-pulse` 점검 중 애니메이션
+
+### 세션 7 (2025-02-01)
+- UI/UX 안정성 개선:
+  - **Wizard Race Condition 해결**: `setTimeout` 대신 polling (`isReady` 체크) 방식으로 변경하여 터미널 초기화 확실히 대기
+  - **Terminal Auto-focus**: 터미널 열릴 때 자동 포커스 추가 (`terminal.focus()`)
+  - **MCP Remote 연결 테스트**: 원격 서버 추가 시 `HEAD` 요청으로 연결 확인 기능 추가
+- 빌드 및 검증 완료
+
+### 세션 8 (2025-02-01)
+- Wizard UX 개선:
+  - **Step 4 제거 및 통합**: 독립적인 MCP 설정 위치 단계를 제거하고, Step 1 (Welcome) 하단의 옵션으로 통합하여 흐름 끊김 방지
+  - **동적 내비게이션 버튼 (Smart Navigation)**:
+    - 단계별 상태 동기화 구현: 설정 완료 시 즉시 "건너뛰기" -> "다음"으로 전환
+    - 미완료 시 "건너뛰기" 버튼 유지
+  - **접근성 개선**: 
+    - 명령어 팔레트(`Cmd+P`)에 "설정 마법사 열기" 추가

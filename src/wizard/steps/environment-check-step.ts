@@ -4,17 +4,18 @@
  * Node.js, Git, Claude Code 점검 및 설치 지원
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState } from "../setup-wizard-modal";
 import { EnvironmentChecker, type CheckResult, type EnvironmentCheckResults } from "../environment-checker";
 
 let checkResults: EnvironmentCheckResults | null = null;
 let isChecking = false;
 
-function getStatusIcon(status: CheckResult["status"]): string {
+function getStatusIconName(status: CheckResult["status"]): string {
   switch (status) {
-    case "pass": return "✅";
-    case "warning": return "⚠️";
-    case "fail": return "❌";
+    case "pass": return "check-circle";
+    case "warning": return "alert-triangle";
+    case "fail": return "x-circle";
   }
 }
 
@@ -26,7 +27,8 @@ function renderCheckItem(
   const item = container.createDiv({ cls: `wizard-env-item status-${result.status}` });
 
   const header = item.createDiv({ cls: "env-item-header" });
-  header.createSpan({ text: getStatusIcon(result.status), cls: "env-status-icon" });
+  const statusIcon = header.createSpan({ cls: "env-status-icon" });
+  setIcon(statusIcon, getStatusIconName(result.status));
 
   const info = header.createDiv({ cls: "env-item-info" });
   const titleRow = info.createDiv({ cls: "env-title-row" });
@@ -76,7 +78,10 @@ export function renderEnvironmentCheckStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "🔧 환경 점검", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "wrench");
+  titleEl.createSpan({ text: " 환경 점검" });
   container.createEl("p", {
     text: "Claude Code 사용에 필요한 도구들을 확인합니다.",
     cls: "wizard-step-desc",
@@ -87,9 +92,10 @@ export function renderEnvironmentCheckStep(
   // Loading state
   if (!checkResults && !isChecking) {
     isChecking = true;
-    checksContainer.createDiv({ cls: "wizard-loading" }).createEl("p", {
-      text: "⏳ 환경을 점검하고 있습니다...",
-    });
+    const loadingEl = checksContainer.createDiv({ cls: "wizard-loading" });
+    const loadingIcon = loadingEl.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingEl.createSpan({ text: " 환경을 점검하고 있습니다..." });
 
     const checker = new EnvironmentChecker();
     checker.checkAll().then((results) => {
@@ -102,9 +108,10 @@ export function renderEnvironmentCheckStep(
   }
 
   if (isChecking) {
-    checksContainer.createDiv({ cls: "wizard-loading" }).createEl("p", {
-      text: "⏳ 환경을 점검하고 있습니다...",
-    });
+    const loadingEl = checksContainer.createDiv({ cls: "wizard-loading" });
+    const loadingIcon = loadingEl.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingEl.createSpan({ text: " 환경을 점검하고 있습니다..." });
     return;
   }
 
@@ -132,9 +139,10 @@ export function renderEnvironmentCheckStep(
 
   if (failCount > 0) {
     summary.addClass("summary-warning");
-    summary.createEl("p", {
-      text: `⚠️ ${failCount}개 항목이 설치되어 있지 않습니다.`,
-    });
+    const warningP = summary.createEl("p");
+    const warningIcon = warningP.createSpan({ cls: "summary-icon" });
+    setIcon(warningIcon, "alert-triangle");
+    warningP.createSpan({ text: ` ${failCount}개 항목이 설치되어 있지 않습니다.` });
     summary.createEl("p", {
       text: "\"터미널에서 설치\" 버튼을 클릭하거나, 명령어를 복사해서 터미널에 붙여넣으세요.",
       cls: "summary-hint",
@@ -143,24 +151,31 @@ export function renderEnvironmentCheckStep(
     // Open terminal button
     if (callbacks?.onOpenTerminal) {
       const terminalBtn = summary.createEl("button", {
-        text: "💻 터미널 열기",
         cls: "wizard-btn wizard-btn-secondary",
       });
+      const termIcon = terminalBtn.createSpan({ cls: "wizard-btn-icon" });
+      setIcon(termIcon, "terminal-square");
+      terminalBtn.createSpan({ text: " 터미널 열기" });
       terminalBtn.addEventListener("click", () => {
         callbacks.onOpenTerminal!();
       });
     }
   } else {
     summary.addClass("summary-success");
-    summary.createEl("p", { text: "✅ 모든 환경 점검을 통과했습니다!" });
+    const successP = summary.createEl("p");
+    const successIcon = successP.createSpan({ cls: "summary-icon" });
+    setIcon(successIcon, "check-circle");
+    successP.createSpan({ text: " 모든 환경 점검을 통과했습니다!" });
   }
 
   // Re-check button
   const actionsRow = container.createDiv({ cls: "wizard-actions-row" });
   const recheckBtn = actionsRow.createEl("button", {
-    text: "🔄 다시 점검",
     cls: "wizard-btn wizard-btn-text",
   });
+  const recheckIcon = recheckBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(recheckIcon, "refresh-cw");
+  recheckBtn.createSpan({ text: " 다시 점검" });
   recheckBtn.addEventListener("click", () => {
     checkResults = null;
     isChecking = false;

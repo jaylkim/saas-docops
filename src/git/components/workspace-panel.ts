@@ -2,9 +2,9 @@
  * Workspace Panel - 작업 공간(브랜치) 관리
  */
 
-import { Notice, Modal, App } from "obsidian";
+import { Notice, Modal, App, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GitBranch, GIT_ICONS, GIT_TERMS } from "../git-types";
+import { GitViewState, GitBranch, GIT_ICON_NAMES, GIT_TERMS } from "../git-types";
 
 export function renderWorkspacePanel(
   container: HTMLElement,
@@ -29,10 +29,8 @@ export function renderWorkspacePanel(
   currentSection.createEl("div", { cls: "git-section-label", text: "현재 작업 공간" });
 
   const currentBox = currentSection.createEl("div", { cls: "git-workspace-current-box" });
-  currentBox.createEl("span", {
-    cls: "git-workspace-icon",
-    text: status.isMainBranch ? GIT_ICONS.main : GIT_ICONS.branch
-  });
+  const workspaceIcon = currentBox.createEl("span", { cls: "git-workspace-icon" });
+  setIcon(workspaceIcon, status.isMainBranch ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
   currentBox.createEl("span", { cls: "git-workspace-name", text: status.currentBranch });
 
   if (status.isMainBranch) {
@@ -83,8 +81,7 @@ export function renderWorkspacePanel(
     createBtn.removeClass("git-btn-loading");
     createBtn.disabled = false;
 
-    const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
-    new Notice(`${icon} ${result.message}`);
+    new Notice(result.message);
 
     if (result.success) {
       input.value = "";
@@ -114,10 +111,8 @@ export function renderWorkspacePanel(
       const item = list.createEl("div", { cls: "git-workspace-item" });
 
       const info = item.createEl("div", { cls: "git-workspace-item-info" });
-      info.createEl("span", {
-        cls: "git-workspace-icon",
-        text: branch.isMain ? GIT_ICONS.main : GIT_ICONS.branch
-      });
+      const itemIcon = info.createEl("span", { cls: "git-workspace-icon" });
+      setIcon(itemIcon, branch.isMain ? GIT_ICON_NAMES.main : GIT_ICON_NAMES.branch);
       info.createEl("span", { cls: "git-workspace-item-name", text: branch.name });
 
       if (branch.isMain) {
@@ -132,7 +127,7 @@ export function renderWorkspacePanel(
       switchBtn.onclick = async () => {
         // 변경사항 확인
         if (status.files.length > 0) {
-          new Notice("⚠️ 저장하지 않은 변경사항이 있습니다. 먼저 저장하세요.");
+          new Notice("저장하지 않은 변경사항이 있습니다. 먼저 저장하세요.");
           return;
         }
 
@@ -142,15 +137,17 @@ export function renderWorkspacePanel(
         switchBtn.removeClass("git-btn-loading");
         switchBtn.disabled = false;
 
-        const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
-        new Notice(`${icon} ${result.message}`);
+        new Notice(result.message);
       };
     }
   }
 
   // 도움말
   const helpBox = container.createEl("div", { cls: "git-help-box" });
-  helpBox.createEl("div", { cls: "git-help-title", text: "💡 작업 공간이란?" });
+  const helpTitle = helpBox.createEl("div", { cls: "git-help-title" });
+  const helpIcon = helpTitle.createEl("span");
+  setIcon(helpIcon, "lightbulb");
+  helpTitle.createEl("span", { text: " 작업 공간이란?" });
   helpBox.createEl("div", {
     cls: "git-help-text",
     text: "작업 공간은 팀의 메인 버전과 별개로 내 작업을 진행할 수 있는 공간입니다. 작업이 완료되면 '검토 요청'을 통해 메인에 합칠 수 있습니다."

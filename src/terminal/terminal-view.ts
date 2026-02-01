@@ -166,6 +166,10 @@ export class TerminalView extends ItemView {
   private resizeTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private isInitialized = false;
 
+  get isReady(): boolean {
+    return this.isInitialized;
+  }
+
   // Data batching for performance optimization
   private writeBuffer: string[] = [];
   private flushScheduled = false;
@@ -335,6 +339,9 @@ export class TerminalView extends ItemView {
 
     // Set up resize handling
     this.setupResizeHandler(shadowHost);
+
+    // Auto-focus
+    this.terminal.focus();
 
     this.isInitialized = true;
   }

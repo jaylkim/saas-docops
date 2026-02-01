@@ -11,7 +11,7 @@ export type MCPTransport = "stdio" | "http" | "sse";
 export interface MCPPreset {
   id: string;
   name: string;
-  icon: string;
+  iconName: string; // Lucide icon name
   description: string;
   transport: MCPTransport;
   // stdio transport
@@ -29,7 +29,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "slack-bot",
     name: "Slack Bot",
-    icon: "🤖",
+    iconName: "bot",
     description: "Slack Bot Token (xoxb-) 사용",
     transport: "stdio",
     command: "npx",
@@ -40,7 +40,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "slack-personal",
     name: "Slack Personal",
-    icon: "👤",
+    iconName: "user",
     description: "Slack User Token (xoxp-) 사용",
     transport: "stdio",
     command: "npx",
@@ -51,7 +51,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "atlassian",
     name: "Atlassian",
-    icon: "📄",
+    iconName: "file-text",
     description: "Confluence, Jira 연동 (공식 OAuth)",
     transport: "http",
     url: "https://mcp.atlassian.com/v1/mcp",
@@ -60,7 +60,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "github",
     name: "GitHub",
-    icon: "🐙",
+    iconName: "github",
     description: "GitHub 리포지토리, 이슈, PR 연동",
     transport: "stdio",
     command: "npx",
@@ -70,7 +70,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "filesystem",
     name: "Filesystem",
-    icon: "📁",
+    iconName: "folder",
     description: "파일 시스템 접근",
     transport: "stdio",
     command: "npx",
@@ -80,7 +80,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "memory",
     name: "Memory",
-    icon: "🧠",
+    iconName: "brain",
     description: "대화 기억 저장",
     transport: "stdio",
     command: "npx",
@@ -90,7 +90,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "postgres",
     name: "PostgreSQL",
-    icon: "🐘",
+    iconName: "database",
     description: "PostgreSQL 데이터베이스 연동",
     transport: "stdio",
     command: "npx",
@@ -100,7 +100,7 @@ export const MCP_PRESETS: MCPPreset[] = [
   {
     id: "sqlite",
     name: "SQLite",
-    icon: "💾",
+    iconName: "database",
     description: "SQLite 데이터베이스 연동",
     transport: "stdio",
     command: "npx",

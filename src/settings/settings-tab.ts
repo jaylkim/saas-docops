@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, setIcon } from "obsidian";
 import type IntegrationAIPlugin from "../main";
 import { SetupWizardModal } from "../wizard";
 import { EnvironmentChecker, MCPServerConfig, MCPConfigLevel } from "../wizard/environment-checker";
@@ -7,7 +7,7 @@ import { MCPServerAddModal, MCPServerEditModal, MCPServerCustomModal, MCPServerR
 import {
   MCPHealthResult,
   MCPHealthStatus,
-  getHealthStatusIcon,
+  getHealthStatusIconName,
   getHealthStatusText,
   getCachedHealth,
   clearHealthCache,
@@ -62,7 +62,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
   private renderWizardSection(containerEl: HTMLElement): void {
     const section = containerEl.createDiv({ cls: "integration-settings-section" });
-    section.createEl("h3", { text: "🚀 설정 마법사" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "rocket");
+    header.createSpan({ text: " 설정 마법사" });
 
     new Setting(section)
       .setName("마법사 다시 실행")
@@ -76,7 +79,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
   private renderApiKeysSection(containerEl: HTMLElement): void {
     const section = containerEl.createDiv({ cls: "integration-settings-section" });
-    section.createEl("h3", { text: "🔑 API 키 관리" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "key");
+    header.createSpan({ text: " API 키 관리" });
 
     section.createEl("p", {
       text: "API 키는 쉘 설정 파일(.zshrc, .bashrc)에 저장되어 터미널에서 자동으로 사용됩니다.",
@@ -96,15 +102,19 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     const statusDiv = keySection.createDiv({ cls: "api-key-status" });
 
     if (keyInfo.found) {
-      statusDiv.createSpan({ text: "✅", cls: "api-key-status-icon" });
+      const statusIcon = statusDiv.createSpan({ cls: "api-key-status-icon" });
+      setIcon(statusIcon, "check-circle");
       const infoSpan = statusDiv.createSpan({ cls: "api-key-info" });
       infoSpan.createSpan({ text: "ANTHROPIC_API_KEY 설정됨" });
       infoSpan.createEl("code", { text: keyInfo.maskedValue, cls: "api-key-masked" });
 
       const sourceDiv = keySection.createDiv({ cls: "api-key-source" });
-      sourceDiv.createSpan({ text: `📁 ${keyInfo.source}`, cls: "api-key-source-path" });
+      const sourceIcon = sourceDiv.createSpan({ cls: "api-key-source-icon" });
+      setIcon(sourceIcon, "folder");
+      sourceDiv.createSpan({ text: ` ${keyInfo.source}`, cls: "api-key-source-path" });
     } else {
-      statusDiv.createSpan({ text: "⚠️", cls: "api-key-status-icon" });
+      const statusIcon = statusDiv.createSpan({ cls: "api-key-status-icon" });
+      setIcon(statusIcon, "alert-triangle");
       statusDiv.createSpan({ text: "ANTHROPIC_API_KEY가 설정되지 않았습니다", cls: "api-key-warning" });
     }
 
@@ -153,14 +163,19 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Help text
     const helpDiv = keySection.createDiv({ cls: "api-key-help" });
-    helpDiv.createEl("p", {
-      text: "💡 API 키는 쉘 설정 파일에 저장됩니다. 저장 후 새 터미널에서 claude 명령이 키를 인식합니다.",
+    const helpIcon = helpDiv.createSpan({ cls: "api-key-help-icon" });
+    setIcon(helpIcon, "lightbulb");
+    helpDiv.createSpan({
+      text: " API 키는 쉘 설정 파일에 저장됩니다. 저장 후 새 터미널에서 claude 명령이 키를 인식합니다.",
     });
   }
 
   private renderTerminalSection(containerEl: HTMLElement): void {
     const section = containerEl.createDiv({ cls: "integration-settings-section" });
-    section.createEl("h3", { text: "💻 터미널 설정" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "terminal-square");
+    header.createSpan({ text: " 터미널 설정" });
 
     // Shell
     new Setting(section)
@@ -208,7 +223,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
   private renderMcpSection(containerEl: HTMLElement): void {
     const section = containerEl.createDiv({ cls: "integration-settings-section" });
-    section.createEl("h3", { text: "🔌 MCP 서버 관리" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "plug");
+    header.createSpan({ text: " MCP 서버 관리" });
 
     // Config level selector
     const vaultPath = (this.app.vault.adapter as { basePath?: string }).basePath || "";
@@ -232,16 +250,16 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Config level explanation
     const configLevelNote = section.createDiv({ cls: "mcp-config-note" });
+    const noteIcon = configLevelNote.createSpan({ cls: "mcp-config-note-icon" });
+    setIcon(noteIcon, "folder");
     if (this.plugin.settings.mcpConfigLevel === "user") {
-      configLevelNote.innerHTML = `
-        <p>📁 <strong>사용자 레벨</strong>: ~/.claude.json에 저장됩니다.</p>
-        <p>모든 프로젝트에서 공통으로 사용됩니다.</p>
-      `;
+      const noteText = configLevelNote.createDiv({ cls: "mcp-config-note-text" });
+      noteText.createEl("p").innerHTML = `<strong>사용자 레벨</strong>: ~/.claude.json에 저장됩니다.`;
+      noteText.createEl("p", { text: "모든 프로젝트에서 공통으로 사용됩니다." });
     } else {
-      configLevelNote.innerHTML = `
-        <p>📁 <strong>프로젝트 레벨</strong>: ${vaultPath}/.mcp.json에 저장됩니다.</p>
-        <p>이 vault에서만 사용됩니다. Git으로 팀과 공유 가능합니다.</p>
-      `;
+      const noteText = configLevelNote.createDiv({ cls: "mcp-config-note-text" });
+      noteText.createEl("p").innerHTML = `<strong>프로젝트 레벨</strong>: ${vaultPath}/.mcp.json에 저장됩니다.`;
+      noteText.createEl("p", { text: "이 vault에서만 사용됩니다. Git으로 팀과 공유 가능합니다." });
     }
 
     // Server list container
@@ -260,7 +278,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Custom server card (stdio)
     const customCard = presetGrid.createDiv({ cls: "mcp-preset-card mcp-preset-custom" });
-    customCard.createSpan({ text: "➕", cls: "mcp-preset-icon" });
+    const customIcon = customCard.createSpan({ cls: "mcp-preset-icon" });
+    setIcon(customIcon, "plus");
     customCard.createSpan({ text: "커스텀", cls: "mcp-preset-name" });
     customCard.addEventListener("click", () => {
       new MCPServerCustomModal(this.app, () => {
@@ -270,7 +289,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Remote server card (sse/http)
     const remoteCard = presetGrid.createDiv({ cls: "mcp-preset-card mcp-preset-remote" });
-    remoteCard.createSpan({ text: "🌐", cls: "mcp-preset-icon" });
+    const remoteIcon = remoteCard.createSpan({ cls: "mcp-preset-icon" });
+    setIcon(remoteIcon, "globe");
     remoteCard.createSpan({ text: "원격", cls: "mcp-preset-name" });
     remoteCard.addEventListener("click", () => {
       new MCPServerRemoteModal(this.app, () => {
@@ -291,10 +311,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
       );
 
     // Restart notice
-    section.createEl("p", {
-      text: "⚠️ MCP 서버 변경 후 Claude Code를 재시작해야 적용됩니다.",
-      cls: "mcp-notice",
-    });
+    const notice = section.createEl("p", { cls: "mcp-notice" });
+    const noticeIcon = notice.createSpan({ cls: "mcp-notice-icon" });
+    setIcon(noticeIcon, "alert-triangle");
+    notice.createSpan({ text: " MCP 서버 변경 후 Claude Code를 재시작해야 적용됩니다." });
   }
 
   private async loadMcpServers(container: HTMLElement): Promise<void> {
@@ -316,9 +336,11 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     headerDiv.createEl("h4", { text: "설정된 서버", cls: "mcp-section-title" });
 
     const refreshBtn = headerDiv.createEl("button", {
-      text: "🔄 전체 상태 점검",
       cls: "mcp-btn mcp-btn-sm mcp-btn-secondary",
     });
+    const refreshIcon = refreshBtn.createSpan({ cls: "mcp-btn-icon" });
+    setIcon(refreshIcon, "refresh-cw");
+    refreshBtn.createSpan({ text: " 전체 상태 점검" });
     refreshBtn.addEventListener("click", async () => {
       if (this.isCheckingHealth) return;
       await this.refreshAllServerHealth(container);
@@ -418,8 +440,9 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     const infoDiv = item.createDiv({ cls: "mcp-server-info" });
 
     const headerDiv = infoDiv.createDiv({ cls: "mcp-server-header" });
-    const icon = this.getServerIcon(name);
-    headerDiv.createSpan({ text: icon, cls: "mcp-server-icon" });
+    const iconName = this.getServerIconName(name);
+    const serverIcon = headerDiv.createSpan({ cls: "mcp-server-icon" });
+    setIcon(serverIcon, iconName);
     headerDiv.createSpan({ text: name, cls: "mcp-server-name" });
 
     // Transport type badge
@@ -439,13 +462,15 @@ export class IntegrationSettingsTab extends PluginSettingTab {
       healthMessage = healthResult.message;
     }
 
-    const healthIcon = getHealthStatusIcon(healthStatus);
+    const healthIconName = getHealthStatusIconName(healthStatus);
     const healthText = getHealthStatusText(healthStatus);
 
     const healthBadge = headerDiv.createSpan({
-      text: `${healthIcon} ${healthText}`,
       cls: `mcp-health-badge mcp-health-${healthStatus}`,
     });
+    const healthIconEl = healthBadge.createSpan({ cls: "mcp-health-icon" });
+    setIcon(healthIconEl, healthIconName);
+    healthBadge.createSpan({ text: ` ${healthText}` });
 
     // Show response time if available
     if (healthResult?.responseTime && healthStatus === "healthy") {
@@ -462,7 +487,9 @@ export class IntegrationSettingsTab extends PluginSettingTab {
       // OAuth note for Atlassian
       if (name === "atlassian") {
         const oauthNote = infoDiv.createDiv({ cls: "mcp-oauth-note" });
-        oauthNote.createSpan({ text: "🔐 OAuth 인증 • 터미널에서 /mcp로 인증", cls: "mcp-oauth-hint" });
+        const oauthIcon = oauthNote.createSpan({ cls: "mcp-oauth-icon" });
+        setIcon(oauthIcon, "lock");
+        oauthNote.createSpan({ text: " OAuth 인증 • 터미널에서 /mcp로 인증", cls: "mcp-oauth-hint" });
       }
     } else {
       // stdio server: show command
@@ -473,7 +500,9 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     // Health status message row (if there's an error)
     if (healthResult && healthStatus === "unhealthy" && healthResult.message) {
       const errorDiv = infoDiv.createDiv({ cls: "mcp-health-error" });
-      errorDiv.createSpan({ text: `⚠️ ${healthResult.message}`, cls: "mcp-health-error-text" });
+      const errorIcon = errorDiv.createSpan({ cls: "mcp-health-error-icon" });
+      setIcon(errorIcon, "alert-triangle");
+      errorDiv.createSpan({ text: ` ${healthResult.message}`, cls: "mcp-health-error-text" });
     }
 
     // Actions
@@ -481,10 +510,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Test button
     const testBtn = actionsDiv.createEl("button", {
-      text: "🔍",
       cls: `mcp-btn-icon ${healthStatus === "checking" ? "mcp-btn-checking" : ""}`,
       attr: { title: "상태 점검" },
     });
+    setIcon(testBtn, "search");
     testBtn.addEventListener("click", async () => {
       if (this.isCheckingHealth) return;
       await this.testSingleServerHealth(name, container);
@@ -515,10 +544,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Edit button
     const editBtn = actionsDiv.createEl("button", {
-      text: "✏️",
       cls: "mcp-btn-icon",
       attr: { title: "편집" },
     });
+    setIcon(editBtn, "edit");
     editBtn.addEventListener("click", () => {
       new MCPServerEditModal(this.app, name, config, () => {
         this.loadMcpServers(container);
@@ -527,10 +556,10 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // Delete button
     const deleteBtn = actionsDiv.createEl("button", {
-      text: "🗑️",
       cls: "mcp-btn-icon mcp-btn-danger",
       attr: { title: "삭제" },
     });
+    setIcon(deleteBtn, "trash-2");
     deleteBtn.addEventListener("click", async () => {
       if (confirm(`${name} 서버를 삭제하시겠습니까?`)) {
         const success = await this.envChecker.removeMCPServer(name);
@@ -551,7 +580,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
       card.addClass("mcp-preset-remote");
     }
 
-    card.createSpan({ text: preset.icon, cls: "mcp-preset-icon" });
+    const presetIcon = card.createSpan({ cls: "mcp-preset-icon" });
+    setIcon(presetIcon, preset.iconName);
 
     const nameContainer = card.createDiv({ cls: "mcp-preset-name-container" });
     nameContainer.createSpan({ text: preset.name, cls: "mcp-preset-name" });
@@ -578,18 +608,18 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     });
   }
 
-  private getServerIcon(name: string): string {
+  private getServerIconName(name: string): string {
     const iconMap: Record<string, string> = {
-      "slack-bot": "🤖",
-      "slack-personal": "👤",
-      slack: "💬",
-      atlassian: "📄",
-      github: "🐙",
-      filesystem: "📁",
-      memory: "🧠",
-      postgres: "🐘",
-      sqlite: "💾",
+      "slack-bot": "bot",
+      "slack-personal": "user",
+      slack: "message-square",
+      atlassian: "file-text",
+      github: "github",
+      filesystem: "folder",
+      memory: "brain",
+      postgres: "database",
+      sqlite: "database",
     };
-    return iconMap[name] || "🔌";
+    return iconMap[name] || "plug";
   }
 }

@@ -57,13 +57,22 @@ export default class IntegrationAIPlugin extends Plugin {
     this.addCommand({
       id: "open-terminal",
       name: "터미널 열기",
+      icon: "terminal-square",
       callback: () => this.activateView(TERMINAL_VIEW_TYPE),
     });
 
     this.addCommand({
       id: "open-git",
       name: "협업 (Git) 열기",
+      icon: "users",
       callback: () => this.activateView(GIT_VIEW_TYPE),
+    });
+
+    this.addCommand({
+      id: "open-setup-wizard",
+      name: "설정 마법사 열기",
+      icon: "wand",
+      callback: () => new SetupWizardModal(this.app, this).open(),
     });
 
     // 6. 설정 탭 추가

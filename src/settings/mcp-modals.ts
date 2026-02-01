@@ -4,7 +4,7 @@
  * MCP 서버 추가/편집/커스텀/원격 모달
  */
 
-import { Modal, App, Notice, Setting } from "obsidian";
+import { Modal, App, Notice, Setting, setIcon } from "obsidian";
 import { EnvironmentChecker, MCPServerConfig } from "../wizard/environment-checker";
 import { MCPPreset, MCPTransport } from "../mcp/presets";
 
@@ -36,7 +36,10 @@ export class MCPServerAddModal extends Modal {
     contentEl.addClass("mcp-modal");
 
     // Header
-    contentEl.createEl("h2", { text: `${this.preset.icon} ${this.preset.name} 서버 추가` });
+    const headerEl = contentEl.createEl("h2");
+    const headerIcon = headerEl.createSpan({ cls: "mcp-modal-header-icon" });
+    setIcon(headerIcon, this.preset.iconName);
+    headerEl.createSpan({ text: ` ${this.preset.name} 서버 추가` });
 
     contentEl.createEl("p", {
       text: this.preset.description,
@@ -57,15 +60,15 @@ export class MCPServerAddModal extends Modal {
     // OAuth explanation
     if (this.preset.requiresOAuth) {
       const oauthBox = contentEl.createDiv({ cls: "mcp-modal-info" });
-      oauthBox.innerHTML = `
-        <h4>🔐 OAuth 인증</h4>
-        <p>이 서버는 OAuth 인증을 사용합니다.</p>
-        <ul>
-          <li>환경변수나 API 토큰이 필요하지 않습니다</li>
-          <li>서버 추가 후 터미널에서 인증합니다</li>
-          <li>브라우저에서 로그인하면 자동으로 연동됩니다</li>
-        </ul>
-      `;
+      const oauthTitle = oauthBox.createEl("h4");
+      const oauthIcon = oauthTitle.createSpan({ cls: "mcp-modal-info-icon" });
+      setIcon(oauthIcon, "lock");
+      oauthTitle.createSpan({ text: " OAuth 인증" });
+      oauthBox.createEl("p", { text: "이 서버는 OAuth 인증을 사용합니다." });
+      const oauthList = oauthBox.createEl("ul");
+      oauthList.createEl("li", { text: "환경변수나 API 토큰이 필요하지 않습니다" });
+      oauthList.createEl("li", { text: "서버 추가 후 터미널에서 인증합니다" });
+      oauthList.createEl("li", { text: "브라우저에서 로그인하면 자동으로 연동됩니다" });
     }
 
     // URL preview
@@ -255,7 +258,10 @@ export class MCPServerEditModal extends Modal {
     contentEl.addClass("mcp-modal");
 
     // Header
-    contentEl.createEl("h2", { text: `✏️ ${this.serverName} 편집` });
+    const headerEl = contentEl.createEl("h2");
+    const headerIcon = headerEl.createSpan({ cls: "mcp-modal-header-icon" });
+    setIcon(headerIcon, "edit");
+    headerEl.createSpan({ text: ` ${this.serverName} 편집` });
 
     // Command
     new Setting(contentEl)
@@ -327,7 +333,8 @@ export class MCPServerEditModal extends Modal {
       this.editedEnv[key] = (e.target as HTMLInputElement).value;
     });
 
-    const deleteBtn = row.createEl("button", { text: "🗑️", cls: "mcp-btn-icon" });
+    const deleteBtn = row.createEl("button", { cls: "mcp-btn-icon" });
+    setIcon(deleteBtn, "trash-2");
     deleteBtn.addEventListener("click", () => {
       delete this.editedEnv[key];
       row.remove();
@@ -393,7 +400,10 @@ export class MCPServerCustomModal extends Modal {
     contentEl.addClass("mcp-modal");
 
     // Header
-    contentEl.createEl("h2", { text: "➕ 커스텀 MCP 서버 추가" });
+    const headerEl = contentEl.createEl("h2");
+    const headerIcon = headerEl.createSpan({ cls: "mcp-modal-header-icon" });
+    setIcon(headerIcon, "plus");
+    headerEl.createSpan({ text: " 커스텀 MCP 서버 추가" });
 
     contentEl.createEl("p", {
       text: "수동으로 MCP 서버를 구성합니다.",
@@ -473,7 +483,8 @@ export class MCPServerCustomModal extends Modal {
       this.envVars[key] = (e.target as HTMLInputElement).value;
     });
 
-    const deleteBtn = row.createEl("button", { text: "🗑️", cls: "mcp-btn-icon" });
+    const deleteBtn = row.createEl("button", { cls: "mcp-btn-icon" });
+    setIcon(deleteBtn, "trash-2");
     deleteBtn.addEventListener("click", () => {
       delete this.envVars[key];
       row.remove();
@@ -544,7 +555,10 @@ export class MCPServerRemoteModal extends Modal {
     contentEl.addClass("mcp-modal");
 
     // Header
-    contentEl.createEl("h2", { text: "🌐 원격 MCP 서버 추가" });
+    const headerEl = contentEl.createEl("h2");
+    const headerIcon = headerEl.createSpan({ cls: "mcp-modal-header-icon" });
+    setIcon(headerIcon, "globe");
+    headerEl.createSpan({ text: " 원격 MCP 서버 추가" });
 
     contentEl.createEl("p", {
       text: "SSE 또는 HTTP 기반 원격 MCP 서버를 추가합니다.",
@@ -610,11 +624,73 @@ export class MCPServerRemoteModal extends Modal {
     // Actions
     const actions = contentEl.createDiv({ cls: "mcp-modal-actions" });
 
-    const cancelBtn = actions.createEl("button", { text: "취소", cls: "mcp-btn mcp-btn-secondary" });
+    // Left side: Cancel
+    const leftActions = actions.createDiv({ cls: "mcp-modal-actions-left" });
+    const cancelBtn = leftActions.createEl("button", { text: "취소", cls: "mcp-btn mcp-btn-secondary" });
     cancelBtn.addEventListener("click", () => this.close());
 
-    const addBtn = actions.createEl("button", { text: "추가", cls: "mcp-btn mcp-btn-primary" });
+    // Right side: Test & Add
+    const rightActions = actions.createDiv({ cls: "mcp-modal-actions-right" });
+
+    // Test button
+    const testBtn = rightActions.createEl("button", {
+      text: "연결 테스트",
+      cls: "mcp-btn mcp-btn-secondary"
+    });
+    testBtn.addEventListener("click", async () => {
+      await this.testConnection(testBtn);
+    });
+
+    const addBtn = rightActions.createEl("button", { text: "추가", cls: "mcp-btn mcp-btn-primary" });
     addBtn.addEventListener("click", () => this.handleAdd());
+  }
+
+  private async testConnection(btn: HTMLButtonElement): Promise<void> {
+    if (!this.serverUrl) {
+      new Notice("서버 URL을 입력해주세요");
+      return;
+    }
+
+    try {
+      new URL(this.serverUrl);
+    } catch {
+      new Notice("올바른 URL 형식이 아닙니다");
+      return;
+    }
+
+    const originalText = btn.textContent;
+    btn.textContent = "테스트 중...";
+    btn.disabled = true;
+
+    try {
+      // Send HEAD request to check availability
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(this.serverUrl, {
+        method: "HEAD",
+        headers: this.headers,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Even 404/403/401 means server is reachable
+      new Notice(`연결 성공! (Status: ${response.status})`);
+      setIcon(btn, "check");
+      btn.textContent = " 성공";
+    } catch (e) {
+      console.error("Connection test failed:", e);
+      new Notice(`연결 실패: ${e instanceof Error ? e.message : String(e)}`);
+      setIcon(btn, "alert-triangle");
+      btn.textContent = " 실패";
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.empty();
+        btn.textContent = originalText;
+      }, 3000);
+    }
   }
 
   private renderHeaderRow(container: HTMLElement, key: string, value: string): void {
@@ -632,7 +708,8 @@ export class MCPServerRemoteModal extends Modal {
       this.headers[key] = (e.target as HTMLInputElement).value;
     });
 
-    const deleteBtn = row.createEl("button", { text: "🗑️", cls: "mcp-btn-icon" });
+    const deleteBtn = row.createEl("button", { cls: "mcp-btn-icon" });
+    setIcon(deleteBtn, "trash-2");
     deleteBtn.addEventListener("click", () => {
       delete this.headers[key];
       row.remove();

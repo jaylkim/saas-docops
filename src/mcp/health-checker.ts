@@ -308,7 +308,7 @@ export function clearHealthCache(): void {
 }
 
 /**
- * Get status icon for health status
+ * Get status icon for health status (emoji - deprecated, use getHealthStatusIconName)
  */
 export function getHealthStatusIcon(status: MCPHealthStatus): string {
   switch (status) {
@@ -322,6 +322,24 @@ export function getHealthStatusIcon(status: MCPHealthStatus): string {
       return "🔄";
     default:
       return "❓";
+  }
+}
+
+/**
+ * Get Lucide icon name for health status
+ */
+export function getHealthStatusIconName(status: MCPHealthStatus): string {
+  switch (status) {
+    case "healthy":
+      return "check-circle";
+    case "unhealthy":
+      return "x-circle";
+    case "disabled":
+      return "pause";
+    case "checking":
+      return "loader";
+    default:
+      return "help-circle";
   }
 }
 

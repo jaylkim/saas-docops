@@ -2,9 +2,9 @@
  * Sync Panel - 동기화 (Pull/Push) 패널
  */
 
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICONS } from "../git-types";
+import { GitViewState, GIT_ICON_NAMES } from "../git-types";
 
 export function renderSyncPanel(
   container: HTMLElement,
@@ -30,7 +30,8 @@ export function renderSyncPanel(
   const pullBtn = quickActions.createEl("button", {
     cls: "git-action-btn git-action-pull"
   });
-  pullBtn.createEl("span", { cls: "git-action-icon", text: GIT_ICONS.pull });
+  const pullIcon = pullBtn.createEl("span", { cls: "git-action-icon" });
+  setIcon(pullIcon, GIT_ICON_NAMES.pull);
   pullBtn.createEl("span", { cls: "git-action-label", text: "최신 가져오기" });
   if (status.behind > 0) {
     pullBtn.createEl("span", { cls: "git-action-badge", text: String(status.behind) });
@@ -51,7 +52,8 @@ export function renderSyncPanel(
   const commitBtn = quickActions.createEl("button", {
     cls: "git-action-btn git-action-commit"
   });
-  commitBtn.createEl("span", { cls: "git-action-icon", text: GIT_ICONS.commit });
+  const commitIcon = commitBtn.createEl("span", { cls: "git-action-icon" });
+  setIcon(commitIcon, GIT_ICON_NAMES.commit);
   commitBtn.createEl("span", { cls: "git-action-label", text: "저장만" });
 
   if (!hasChanges) {
@@ -85,7 +87,8 @@ export function renderSyncPanel(
   const commitPushBtn = quickActions.createEl("button", {
     cls: "git-action-btn git-action-commit-push git-action-primary"
   });
-  commitPushBtn.createEl("span", { cls: "git-action-icon", text: GIT_ICONS.commit });
+  const commitPushIcon = commitPushBtn.createEl("span", { cls: "git-action-icon" });
+  setIcon(commitPushIcon, GIT_ICON_NAMES.commit);
   commitPushBtn.createEl("span", { cls: "git-action-label", text: "저장 & 올리기" });
 
   if (!hasChanges) {
@@ -119,7 +122,8 @@ export function renderSyncPanel(
   const pushBtn = quickActions.createEl("button", {
     cls: "git-action-btn git-action-push"
   });
-  pushBtn.createEl("span", { cls: "git-action-icon", text: GIT_ICONS.push });
+  const pushIcon = pushBtn.createEl("span", { cls: "git-action-icon" });
+  setIcon(pushIcon, GIT_ICON_NAMES.push);
   pushBtn.createEl("span", { cls: "git-action-label", text: "올리기" });
   if (status.ahead > 0) {
     pushBtn.createEl("span", { cls: "git-action-badge", text: String(status.ahead) });
@@ -148,8 +152,7 @@ export function renderSyncPanel(
 }
 
 function showNotice(success: boolean, message: string): void {
-  const icon = success ? GIT_ICONS.success : GIT_ICONS.error;
-  new Notice(`${icon} ${message}`);
+  new Notice(message);
 }
 
 function formatRemoteUrl(url: string): string {

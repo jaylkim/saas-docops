@@ -4,6 +4,7 @@
  * MCP 서버 설정 저장 위치 선택 (사용자/프로젝트)
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState } from "../setup-wizard-modal";
 import type IntegrationAIPlugin from "../../main";
 import { MCPConfigLevel } from "../../constants";
@@ -18,7 +19,10 @@ export function renderMcpConfigStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "📁 MCP 설정 위치", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "folder");
+  titleEl.createSpan({ text: " MCP 설정 위치" });
   container.createEl("p", {
     text: "MCP 서버 설정을 어디에 저장할지 선택합니다.",
     cls: "wizard-step-desc",
@@ -126,10 +130,10 @@ export function renderMcpConfigStep(
   }
 
   // Note
-  container.createEl("p", {
-    text: "💡 나중에 설정 탭에서 변경할 수 있습니다.",
-    cls: "wizard-note",
-  });
+  const noteEl = container.createEl("p", { cls: "wizard-note" });
+  const noteIcon = noteEl.createSpan({ cls: "wizard-note-icon" });
+  setIcon(noteIcon, "lightbulb");
+  noteEl.createSpan({ text: " 나중에 설정 탭에서 변경할 수 있습니다." });
 }
 
 export function resetMcpConfigStatus(): void {

@@ -4,6 +4,7 @@
  * SSH 키 확인/생성 및 Bitbucket 등록 안내
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState } from "../setup-wizard-modal";
 import { EnvironmentChecker, type SSHKeyInfo } from "../environment-checker";
 
@@ -17,7 +18,10 @@ export function renderBitbucketSSHStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "🔑 Bitbucket SSH 설정", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "lock");
+  titleEl.createSpan({ text: " Bitbucket SSH 설정" });
   container.createEl("p", {
     text: "Bitbucket 저장소에 접근하려면 SSH 키가 필요합니다.",
     cls: "wizard-step-desc",
@@ -32,16 +36,28 @@ export function renderBitbucketSSHStep(
     checker.getSSHKeyInfo().then((info) => {
       sshKeyInfo = info;
       isChecking = false;
-      updateState({ sshKeyInfo: info });
+      if (info.exists) {
+        updateState({ sshKeyInfo: info });
+      } else {
+        // If not exists, ensure state doesn't have it (or has it marked)
+        // But for modal completion check, we probably want to only set it if it exists
+        updateState({ sshKeyInfo: undefined });
+      }
       renderBitbucketSSHStep(container, state, updateState);
     });
 
-    statusContainer.createEl("p", { text: "⏳ SSH 키를 확인하고 있습니다..." });
+    const loadingP = statusContainer.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " SSH 키를 확인하고 있습니다..." });
     return;
   }
 
   if (isChecking) {
-    statusContainer.createEl("p", { text: "⏳ SSH 키를 확인하고 있습니다..." });
+    const loadingP = statusContainer.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " SSH 키를 확인하고 있습니다..." });
     return;
   }
 
@@ -49,8 +65,12 @@ export function renderBitbucketSSHStep(
 
   // SSH key exists
   if (sshKeyInfo.exists && sshKeyInfo.publicKey) {
+    if (!state.sshKeyInfo) {
+      setTimeout(() => updateState({ sshKeyInfo: sshKeyInfo ?? undefined }), 0);
+    }
     const successBox = statusContainer.createDiv({ cls: "wizard-status-box status-success" });
-    successBox.createEl("div", { text: "✅", cls: "status-icon" });
+    const successIcon = successBox.createEl("div", { cls: "status-icon" });
+    setIcon(successIcon, "check-circle");
     const content = successBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "SSH 키가 있습니다" });
     content.createEl("p", { text: sshKeyInfo.message });
@@ -68,13 +88,19 @@ export function renderBitbucketSSHStep(
     keyText.rows = 4;
 
     const copyBtn = keySection.createEl("button", {
-      text: "📋 공개 키 복사",
       cls: "wizard-btn wizard-btn-primary",
     });
+    const copyIcon = copyBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(copyIcon, "copy");
+    const copyText = copyBtn.createSpan({ text: " 공개 키 복사" });
     copyBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(sshKeyInfo!.publicKey!);
-      copyBtn.setText("✓ 복사됨!");
-      setTimeout(() => copyBtn.setText("📋 공개 키 복사"), 2000);
+      setIcon(copyIcon, "check");
+      copyText.setText(" 복사됨!");
+      setTimeout(() => {
+        setIcon(copyIcon, "copy");
+        copyText.setText(" 공개 키 복사");
+      }, 2000);
     });
 
     // Bitbucket registration guide
@@ -82,7 +108,8 @@ export function renderBitbucketSSHStep(
   } else {
     // No SSH key - need to generate
     const warningBox = statusContainer.createDiv({ cls: "wizard-status-box status-warning" });
-    warningBox.createEl("div", { text: "⚠️", cls: "status-icon" });
+    const warningIcon = warningBox.createEl("div", { cls: "status-icon" });
+    setIcon(warningIcon, "alert-triangle");
     const content = warningBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "SSH 키가 없습니다" });
     content.createEl("p", { text: "SSH 키를 생성해야 Bitbucket에 접근할 수 있습니다." });
@@ -108,27 +135,35 @@ export function renderBitbucketSSHStep(
     // Generate button
     const generateContainer = generateSection.createDiv({ cls: "wizard-generate-container" });
     const generateBtn = generateContainer.createEl("button", {
-      text: "🔐 SSH 키 생성",
       cls: "wizard-btn wizard-btn-primary",
     });
+    const genIcon = generateBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(genIcon, "key");
+    generateBtn.createSpan({ text: " SSH 키 생성" });
     const generateStatus = generateContainer.createSpan({ cls: "generate-status" });
 
     generateBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       if (!email || !email.includes("@")) {
-        generateStatus.setText("❌ 올바른 이메일을 입력해주세요");
+        generateStatus.empty();
+        const errorIcon = generateStatus.createSpan({ cls: "generate-status-icon" });
+        setIcon(errorIcon, "x-circle");
+        generateStatus.createSpan({ text: " 올바른 이메일을 입력해주세요" });
         generateStatus.addClass("error");
         return;
       }
 
       generateBtn.disabled = true;
-      generateBtn.setText("생성 중...");
-      generateStatus.setText("");
+      generateBtn.textContent = "생성 중...";
+      generateStatus.empty();
 
       const result = await checker.generateSSHKey(email);
 
       if (result.success && result.publicKey) {
-        generateStatus.setText("✅ SSH 키가 생성되었습니다!");
+        generateStatus.empty();
+        const successIcon = generateStatus.createSpan({ cls: "generate-status-icon" });
+        setIcon(successIcon, "check-circle");
+        generateStatus.createSpan({ text: " SSH 키가 생성되었습니다!" });
         generateStatus.removeClass("error");
         generateStatus.addClass("success");
 
@@ -143,10 +178,16 @@ export function renderBitbucketSSHStep(
           renderBitbucketSSHStep(container, state, updateState);
         }, 1500);
       } else {
-        generateStatus.setText(`❌ ${result.error || "생성 실패"}`);
+        generateStatus.empty();
+        const errorIcon = generateStatus.createSpan({ cls: "generate-status-icon" });
+        setIcon(errorIcon, "x-circle");
+        generateStatus.createSpan({ text: ` ${result.error || "생성 실패"}` });
         generateStatus.addClass("error");
         generateBtn.disabled = false;
-        generateBtn.setText("🔐 SSH 키 생성");
+        generateBtn.empty();
+        const newGenIcon = generateBtn.createSpan({ cls: "wizard-btn-icon" });
+        setIcon(newGenIcon, "key");
+        generateBtn.createSpan({ text: " SSH 키 생성" });
       }
     });
   }
@@ -154,9 +195,11 @@ export function renderBitbucketSSHStep(
   // Re-check button
   const actionsRow = container.createDiv({ cls: "wizard-actions-row" });
   const recheckBtn = actionsRow.createEl("button", {
-    text: "🔄 다시 확인",
     cls: "wizard-btn wizard-btn-text",
   });
+  const recheckIcon = recheckBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(recheckIcon, "refresh-cw");
+  recheckBtn.createSpan({ text: " 다시 확인" });
   recheckBtn.addEventListener("click", () => {
     sshKeyInfo = null;
     isChecking = false;
@@ -164,10 +207,10 @@ export function renderBitbucketSSHStep(
   });
 
   // Skip note
-  container.createEl("p", {
-    text: "💡 SSH 설정은 선택사항입니다. Bitbucket을 사용하지 않는다면 건너뛰어도 됩니다.",
-    cls: "wizard-note",
-  });
+  const noteEl = container.createEl("p", { cls: "wizard-note" });
+  const noteIcon = noteEl.createSpan({ cls: "wizard-note-icon" });
+  setIcon(noteIcon, "lightbulb");
+  noteEl.createSpan({ text: " SSH 설정은 선택사항입니다. Bitbucket을 사용하지 않는다면 건너뛰어도 됩니다." });
 }
 
 function renderBitbucketGuide(container: HTMLElement): void {

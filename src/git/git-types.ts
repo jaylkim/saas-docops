@@ -111,7 +111,7 @@ export const GIT_TERMS = {
   behind: "가져올 저장점",
 } as const;
 
-// 상태 아이콘
+// 상태 아이콘 (이모지 - 레거시, 점진적으로 제거 예정)
 export const GIT_ICONS = {
   branch: "🌿",
   main: "🏠",
@@ -130,4 +130,26 @@ export const GIT_ICONS = {
   deleted: "🗑️",
   loading: "⏳",
   sync: "🔄",
+} as const;
+
+// Lucide 아이콘 이름 (신규)
+export const GIT_ICON_NAMES = {
+  branch: "git-branch",
+  main: "home",
+  commit: "save",
+  pull: "download",
+  push: "upload",
+  conflict: "alert-triangle",
+  pullRequest: "file-edit",
+  success: "check-circle",
+  error: "x-circle",
+  warning: "alert-triangle",
+  file: "file",
+  folder: "folder",
+  modified: "edit",
+  added: "plus",
+  deleted: "trash-2",
+  loading: "loader",
+  sync: "refresh-cw",
+  info: "info",
 } as const;

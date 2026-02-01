@@ -5,6 +5,7 @@
  * Bot Token (xoxb-) 또는 User Token (xoxp-) 지원
  */
 
+import { setIcon } from "obsidian";
 import type { WizardStep, WizardState, WizardCallbacks } from "../setup-wizard-modal";
 import { EnvironmentChecker } from "../environment-checker";
 
@@ -19,7 +20,10 @@ export function renderSlackSetupStep(
 ): void {
   container.empty();
 
-  container.createEl("h2", { text: "💬 Slack 연동 설정", cls: "wizard-step-title" });
+  const titleEl = container.createEl("h2", { cls: "wizard-step-title" });
+  const titleIcon = titleEl.createSpan({ cls: "wizard-title-icon" });
+  setIcon(titleIcon, "message-square");
+  titleEl.createSpan({ text: " Slack 연동 설정" });
   container.createEl("p", {
     text: "Slack과 연동하면 Claude가 Slack 채널의 메시지를 읽고 보낼 수 있습니다.",
     cls: "wizard-step-desc",
@@ -30,6 +34,11 @@ export function renderSlackSetupStep(
   const configLevel = callbacks?.plugin?.settings.mcpConfigLevel || state.mcpConfigLevel || "user";
   checker.setConfigLevel(configLevel, callbacks?.vaultPath);
 
+  // Use state or local cache
+  if (state.slackConfigured && isConfigured === null) {
+    isConfigured = true;
+  }
+
   if (isConfigured === null && !isChecking) {
     isChecking = true;
     // Check both slack-bot and slack-personal
@@ -38,23 +47,37 @@ export function renderSlackSetupStep(
       checker.hasMCPServer("slack-personal"),
     ]).then(([hasBot, hasPersonal]) => {
       isConfigured = hasBot || hasPersonal;
+      if (isConfigured) {
+        updateState({ slackConfigured: true });
+      }
       isChecking = false;
       renderSlackSetupStep(container, state, updateState, callbacks);
     });
 
-    container.createEl("p", { text: "⏳ 설정 상태를 확인하고 있습니다..." });
+    const loadingP = container.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " 설정 상태를 확인하고 있습니다..." });
     return;
   }
 
   if (isChecking) {
-    container.createEl("p", { text: "⏳ 설정 상태를 확인하고 있습니다..." });
+    const loadingP = container.createEl("p");
+    const loadingIcon = loadingP.createSpan({ cls: "wizard-loading-icon" });
+    setIcon(loadingIcon, "loader");
+    loadingP.createSpan({ text: " 설정 상태를 확인하고 있습니다..." });
     return;
   }
 
   // Already configured - show status, server list, and allow adding more
-  if (isConfigured && !state.slackBotToken) {
+  if (isConfigured) {
+    if (!state.slackConfigured) {
+      // Ensure parent state is synced if we are using cached result
+      setTimeout(() => updateState({ slackConfigured: true }), 0);
+    }
     const successBox = container.createDiv({ cls: "wizard-status-box status-success" });
-    successBox.createEl("div", { text: "✅", cls: "status-icon" });
+    const successIcon = successBox.createEl("div", { cls: "status-icon" });
+    setIcon(successIcon, "check-circle");
     const content = successBox.createDiv({ cls: "status-content" });
     content.createEl("h3", { text: "Slack MCP가 설정되어 있습니다" });
     content.createEl("p", { text: "다음 단계로 진행하거나, 서버를 관리할 수 있습니다." });
@@ -64,9 +87,11 @@ export function renderSlackSetupStep(
     renderConfiguredSlackServers(serverListContainer, checker, container, state, updateState, callbacks);
 
     const addMoreBtn = container.createEl("button", {
-      text: "➕ 다른 토큰 추가",
       cls: "wizard-btn wizard-btn-secondary",
     });
+    const addIcon = addMoreBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(addIcon, "plus");
+    addMoreBtn.createSpan({ text: " 다른 토큰 추가" });
     addMoreBtn.addEventListener("click", () => {
       isConfigured = false;
       renderSlackSetupStep(container, state, updateState, callbacks);
@@ -128,10 +153,10 @@ export function renderSlackSetupStep(
   updateGuide("bot");
 
   // Skip note
-  container.createEl("p", {
-    text: "💡 Slack 연동은 선택사항입니다. 나중에 설정 탭에서 다시 설정할 수 있습니다.",
-    cls: "wizard-note",
-  });
+  const noteEl = container.createEl("p", { cls: "wizard-note" });
+  const noteIcon = noteEl.createSpan({ cls: "wizard-note-icon" });
+  setIcon(noteIcon, "lightbulb");
+  noteEl.createSpan({ text: " Slack 연동은 선택사항입니다. 나중에 설정 탭에서 다시 설정할 수 있습니다." });
 }
 
 function renderBotTokenGuide(container: HTMLElement): void {
@@ -294,45 +319,57 @@ function renderTokenInput(
 
   // Show/hide toggle
   const toggleBtn = inputGroup.createEl("button", {
-    text: "👁️ 보기",
     cls: "wizard-btn wizard-btn-text wizard-btn-sm",
   });
+  const toggleIcon = toggleBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(toggleIcon, "eye");
+  const toggleText = toggleBtn.createSpan({ text: " 보기" });
   toggleBtn.addEventListener("click", () => {
     if (tokenInput.type === "password") {
       tokenInput.type = "text";
-      toggleBtn.setText("🙈 숨기기");
+      setIcon(toggleIcon, "eye-off");
+      toggleText.setText(" 숨기기");
     } else {
       tokenInput.type = "password";
-      toggleBtn.setText("👁️ 보기");
+      setIcon(toggleIcon, "eye");
+      toggleText.setText(" 보기");
     }
   });
 
   // Info about MCP server name
-  step4Content.createEl("p", {
-    text: `💡 MCP 서버 이름: ${mcpServerName}`,
-    cls: "wizard-hint",
-  });
+  const hintP = step4Content.createEl("p", { cls: "wizard-hint" });
+  const hintIcon = hintP.createSpan({ cls: "wizard-hint-icon" });
+  setIcon(hintIcon, "lightbulb");
+  hintP.createSpan({ text: ` MCP 서버 이름: ${mcpServerName}` });
 
   // Save button
   const saveContainer = step4Content.createDiv({ cls: "wizard-save-container" });
   const saveBtn = saveContainer.createEl("button", {
-    text: `💾 ${mcpServerName} 저장`,
     cls: "wizard-btn wizard-btn-primary",
   });
+  const saveIcon = saveBtn.createSpan({ cls: "wizard-btn-icon" });
+  setIcon(saveIcon, "save");
+  saveBtn.createSpan({ text: ` ${mcpServerName} 저장` });
 
   const saveStatus = saveContainer.createSpan({ cls: "save-status" });
 
   saveBtn.addEventListener("click", async () => {
     const token = tokenInput.value.trim();
     if (!token) {
-      saveStatus.setText("❌ 토큰을 입력해주세요");
+      saveStatus.empty();
+      const errorIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(errorIcon, "x-circle");
+      saveStatus.createSpan({ text: " 토큰을 입력해주세요" });
       saveStatus.addClass("error");
       return;
     }
 
     // Validate token format
     if (!token.startsWith(expectedPrefix)) {
-      saveStatus.setText(`❌ ${tokenLabel}은 ${expectedPrefix}로 시작해야 합니다`);
+      saveStatus.empty();
+      const errorIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(errorIcon, "x-circle");
+      saveStatus.createSpan({ text: ` ${tokenLabel}은 ${expectedPrefix}로 시작해야 합니다` });
       saveStatus.addClass("error");
       return;
     }
@@ -353,19 +390,30 @@ function renderTokenInput(
     });
 
     if (success) {
-      saveStatus.setText(`✅ ${mcpServerName} 저장됨!`);
+      saveStatus.empty();
+      const successIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(successIcon, "check-circle");
+      saveStatus.createSpan({ text: ` ${mcpServerName} 저장됨!` });
       saveStatus.removeClass("error");
       saveStatus.addClass("success");
+      saveStatus.addClass("success");
       isConfigured = true;
+      updateState({ slackConfigured: true });
 
       setTimeout(() => {
         renderSlackSetupStep(container.parentElement as HTMLElement, state, updateState, callbacks);
       }, 1500);
     } else {
-      saveStatus.setText("❌ 저장 실패");
+      saveStatus.empty();
+      const errorIcon = saveStatus.createSpan({ cls: "save-status-icon" });
+      setIcon(errorIcon, "x-circle");
+      saveStatus.createSpan({ text: " 저장 실패" });
       saveStatus.addClass("error");
       saveBtn.disabled = false;
-      saveBtn.setText(`💾 ${mcpServerName} 저장`);
+      saveBtn.empty();
+      const newSaveIcon = saveBtn.createSpan({ cls: "wizard-btn-icon" });
+      setIcon(newSaveIcon, "save");
+      saveBtn.createSpan({ text: ` ${mcpServerName} 저장` });
     }
   });
 }
@@ -393,9 +441,11 @@ async function renderConfiguredSlackServers(
     const serverItem = container.createDiv({ cls: "wizard-server-item" });
 
     const infoDiv = serverItem.createDiv({ cls: "wizard-server-info" });
-    const icon = name === "slack-bot" ? "🤖" : "👤";
+    const iconName = name === "slack-bot" ? "bot" : "user";
     const label = name === "slack-bot" ? "Bot Token" : "User Token";
-    infoDiv.createSpan({ text: `${icon} ${label}`, cls: "wizard-server-name" });
+    const serverIcon = infoDiv.createSpan({ cls: "wizard-server-icon" });
+    setIcon(serverIcon, iconName);
+    infoDiv.createSpan({ text: ` ${label}`, cls: "wizard-server-name" });
 
     // Show masked token (support both old and new env var names)
     const newEnvKey = name === "slack-bot" ? "SLACK_MCP_XOXB_TOKEN" : "SLACK_MCP_XOXP_TOKEN";
@@ -409,9 +459,11 @@ async function renderConfiguredSlackServers(
     }
 
     const deleteBtn = serverItem.createEl("button", {
-      text: "🗑️ 삭제",
       cls: "wizard-btn wizard-btn-danger wizard-btn-sm",
     });
+    const deleteIcon = deleteBtn.createSpan({ cls: "wizard-btn-icon" });
+    setIcon(deleteIcon, "trash-2");
+    deleteBtn.createSpan({ text: " 삭제" });
     deleteBtn.addEventListener("click", async () => {
       if (confirm(`${label} 서버를 삭제하시겠습니까?`)) {
         await checker.removeMCPServer(name);

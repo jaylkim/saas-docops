@@ -2760,3 +2760,156 @@
 .git-btn-warning:hover:not(:disabled) {
   background: #e0a800;
 }
+
+/* ===== Icon Styling ===== */
+
+/* Icon sizing */
+.saas-docops-icon svg,
+.wizard-title-icon svg,
+.wizard-hero-icon svg,
+.wizard-note-icon svg,
+.wizard-loading-icon svg,
+.wizard-btn-icon svg,
+.wizard-check-icon svg,
+.wizard-info-icon svg,
+.wizard-tips-icon svg,
+.wizard-hint-icon svg,
+.wizard-server-icon svg,
+.setup-icon svg,
+.settings-section-icon svg,
+.status-icon svg,
+.summary-icon svg,
+.save-status-icon svg,
+.generate-status-icon svg,
+.status-hint-icon svg,
+.api-key-status-icon svg,
+.api-key-source-icon svg,
+.api-key-help-icon svg,
+.mcp-btn-icon svg,
+.mcp-preset-icon svg,
+.mcp-server-icon svg,
+.mcp-health-icon svg,
+.mcp-oauth-icon svg,
+.mcp-health-error-icon svg,
+.mcp-notice-icon svg,
+.mcp-config-note-icon svg,
+.mcp-modal-header-icon svg,
+.mcp-modal-info-icon svg,
+.git-tab-icon svg,
+.git-action-icon svg,
+.git-branch-icon svg,
+.git-sync-icon svg,
+.git-file-icon svg,
+.git-error-icon svg,
+.git-warning-icon svg,
+.git-info-icon svg,
+.git-conflict-icon svg,
+.git-no-conflict-icon svg,
+.git-review-icon svg,
+.git-workspace-icon svg,
+.git-conflict-file-icon svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+/* Large icons */
+.wizard-hero-icon svg,
+.complete-icon svg,
+.git-init-icon svg {
+  width: 48px;
+  height: 48px;
+}
+
+.status-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Medium icons */
+.setup-icon svg,
+.mcp-preset-icon svg,
+.git-action-icon svg,
+.git-tab-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-section-icon svg,
+.wizard-title-icon svg,
+.mcp-modal-header-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Small icons */
+.wizard-note-icon svg,
+.wizard-hint-icon svg,
+.wizard-loading-icon svg,
+.wizard-btn-icon svg,
+.wizard-check-icon svg,
+.save-status-icon svg,
+.mcp-btn-icon svg,
+.mcp-health-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Loading icon animation */
+.wizard-loading-icon svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Progress dot active state (remove scale transform) */
+.wizard-progress-dot.active {
+  transform: none;
+  box-shadow: 0 0 0 3px rgba(var(--interactive-accent-rgb), 0.3);
+}
+
+/* Button overflow fix */
+.git-action-btn {
+  overflow: hidden;
+  max-width: 120px;
+}
+
+.git-action-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Preset card overflow fix */
+.mcp-preset-grid {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+
+.mcp-preset-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Settings section header icon alignment */
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* MCP config note icon layout */
+.mcp-config-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.mcp-config-note-text {
+  flex: 1;
+}
