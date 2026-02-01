@@ -15,11 +15,12 @@ import {
   renderWorkspacePanel,
   renderReviewPanel,
   renderConflictPanel,
+  renderHistoryPanel,
 } from "./components";
 
 export const GIT_VIEW_TYPE = "integration-git-view";
 
-type TabId = "home" | "workspace" | "review" | "conflict";
+type TabId = "home" | "workspace" | "review" | "conflict" | "history";
 
 interface TabConfig {
   id: TabId;
@@ -32,6 +33,7 @@ const TABS: TabConfig[] = [
   { id: "home", iconName: "home", label: "홈" },
   { id: "workspace", iconName: "git-branch", label: "작업 공간", description: "브랜치 · 독립된 작업 영역" },
   { id: "review", iconName: "file-edit", label: "검토 요청", description: "PR · 변경사항 검토 요청" },
+  { id: "history", iconName: "history", label: "저장 이력", description: "과거 버전 · 되돌리기" },
   { id: "conflict", iconName: "alert-triangle", label: "충돌 해결" },
 ];
 
@@ -231,10 +233,25 @@ export class GitView extends ItemView {
       case "review":
         renderReviewPanel(container, state, this.gitState);
         break;
+      case "history":
+        this.renderHistoryTab(container, state);
+        break;
       case "conflict":
         renderConflictPanel(container, state, this.gitState);
         break;
     }
+  }
+
+  private async renderHistoryTab(container: HTMLElement, state: GitViewState): Promise<void> {
+    if (!this.gitState) return;
+
+    // 커밋 히스토리가 비어있으면 로드
+    if (state.commits.length === 0 && !state.loading) {
+      await this.gitState.loadCommitHistory();
+      return; // loadCommitHistory가 상태 변경 후 리렌더를 트리거함
+    }
+
+    renderHistoryPanel(container, state, this.gitState, this.app);
   }
 
   private renderHomeTab(container: HTMLElement, state: GitViewState): void {

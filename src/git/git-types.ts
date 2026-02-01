@@ -84,6 +84,17 @@ export interface GitStateChangeEvent {
   data?: GitStatus | GitBranch[] | GitFile[] | Error;
 }
 
+// 커밋 정보
+export interface GitCommitInfo {
+  hash: string;
+  shortHash: string;
+  message: string;
+  author: string;
+  date: Date;
+  isCurrent: boolean; // 현재 HEAD가 이 커밋인지
+  files?: GitFile[]; // 변경된 파일 목록 (선택적)
+}
+
 // View 상태
 export interface GitViewState {
   loading: boolean;
@@ -93,6 +104,12 @@ export interface GitViewState {
   selectedFiles: Set<string>;
   commitMessage: string;
   activePanel: "status" | "sync" | "workspace" | "review" | "conflict";
+  commits: GitCommitInfo[];
+  isDetachedHead: boolean;
+  // Pagination & Details
+  commitPage: number;
+  expandedCommit: string | null; // 상세 내용을 보고 있는 커밋 해시
+  detailLoading: boolean; // 상세 내용 로딩 중
 }
 
 // 비개발자 친화 용어 매핑
@@ -110,6 +127,10 @@ export const GIT_TERMS = {
   deleted: "삭제됨",
   ahead: "올릴 저장점",
   behind: "가져올 저장점",
+  history: "저장 이력",
+  checkout: "이동",
+  detachedHead: "과거 버전 보기 모드",
+  returnToLatest: "최신으로 돌아가기",
 } as const;
 
 // 상태 아이콘 (이모지 - 텍스트 표시용, 예: Notice)
@@ -153,6 +174,10 @@ export const GIT_ICON_NAMES = {
   loading: "loader",
   sync: "refresh-cw",
   info: "info",
+  history: "history",
+  clock: "clock",
+  arrowLeft: "arrow-left",
+  gitCommit: "git-commit",
 } as const;
 
 // 상태 아이콘 (수정됨: Lucide 아이콘 이름 참조)

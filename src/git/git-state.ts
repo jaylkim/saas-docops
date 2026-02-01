@@ -3,7 +3,7 @@
  */
 
 import { GitService } from "./git-service";
-import { GitStatus, GitBranch, GitViewState, GitOperationResult } from "./git-types";
+import { GitStatus, GitBranch, GitViewState, GitOperationResult, GitCommitInfo } from "./git-types";
 
 type StateListener = (state: GitViewState) => void;
 
@@ -20,6 +20,11 @@ export class GitState {
     selectedFiles: new Set(),
     commitMessage: "",
     activePanel: "status",
+    commits: [],
+    isDetachedHead: false,
+    commitPage: 0,
+    expandedCommit: null,
+    detailLoading: false,
   };
 
   constructor(repoPath: string) {
@@ -83,15 +88,17 @@ export class GitState {
     this.setState({ loading: true, error: null });
 
     try {
-      const [status, branches] = await Promise.all([
+      const [status, branches, isDetachedHead] = await Promise.all([
         this.service.getStatus(),
         this.service.getBranches(),
+        this.service.isDetachedHead(),
       ]);
 
       this.setState({
         loading: false,
         status,
         branches,
+        isDetachedHead,
         error: status.isRepo ? null : "Git 저장소가 아닙니다",
       });
     } catch (error) {
@@ -343,6 +350,125 @@ export class GitState {
    */
   async getDiff(files?: string[]): Promise<{ diff: string; hasStagedChanges: boolean }> {
     return this.service.getDiff(files);
+  }
+
+  // ===== 커밋 히스토리 =====
+
+  /**
+   * 커밋 히스토리 로드
+   */
+  /**
+   * 커밋 히스토리 로드
+   */
+  async loadCommitHistory(search?: string): Promise<void> {
+    this.setState({ loading: true, commitPage: 0 }); // Reset pagination
+    try {
+      const commits = await this.service.getCommitLog(50, 0, search);
+      this.setState({ loading: false, commits });
+    } catch (error) {
+      this.setState({
+        loading: false,
+        error: error instanceof Error ? error.message : "커밋 이력 조회 실패",
+      });
+    }
+  }
+
+  /**
+   * 더 많은 커밋 로드 (페이지네이션)
+   */
+  async loadMoreCommits(search?: string): Promise<void> {
+    const nextPage = this.state.commitPage + 1;
+    const limit = 50;
+    const skip = nextPage * limit;
+
+    try {
+      const newCommits = await this.service.getCommitLog(limit, skip, search);
+
+      if (newCommits.length === 0) {
+        return; // No more commits
+      }
+
+      this.setState({
+        commitPage: nextPage,
+        commits: [...this.state.commits, ...newCommits],
+      });
+    } catch (error) {
+      // Error handling (maybe show notice?)
+      console.error("Failed to load more commits", error);
+    }
+  }
+
+  /**
+   * 커밋 상세 정보 토글
+   */
+  async toggleCommitDetails(hash: string): Promise<void> {
+    // 이미 펼쳐져 있으면 닫기
+    if (this.state.expandedCommit === hash) {
+      this.setState({ expandedCommit: null });
+      return;
+    }
+
+    this.setState({ expandedCommit: hash, detailLoading: true });
+
+    // 해당 커밋 찾기
+    const commitIndex = this.state.commits.findIndex((c) => c.hash === hash);
+    if (commitIndex === -1) {
+      this.setState({ detailLoading: false });
+      return;
+    }
+
+    const commit = this.state.commits[commitIndex];
+
+    // 이미 파일 정보가 있으면 바로 표시
+    if (commit.files) {
+      this.setState({ detailLoading: false });
+      return;
+    }
+
+    // 파일 정보 로드
+    try {
+      const files = await this.service.getCommitDetails(hash);
+
+      // 상태 업데이트 (커밋 객체에 파일 목록 추가)
+      const newCommits = [...this.state.commits];
+      newCommits[commitIndex] = { ...commit, files };
+
+      this.setState({
+        commits: newCommits,
+        detailLoading: false,
+      });
+    } catch (error) {
+      this.setState({
+        detailLoading: false,
+        error: "상세 정보 로드 실패",
+      });
+    }
+  }
+
+  /**
+   * 특정 커밋으로 이동
+   */
+  async checkoutCommit(hash: string): Promise<GitOperationResult> {
+    this.setState({ loading: true });
+    const result = await this.service.checkoutCommit(hash);
+    await this.refresh();
+    if (result.success) {
+      await this.loadCommitHistory();
+    }
+    return result;
+  }
+
+  /**
+   * 최신 버전으로 복귀
+   */
+  async returnToLatest(): Promise<GitOperationResult> {
+    this.setState({ loading: true });
+    const result = await this.service.returnToLatest();
+    await this.refresh();
+    if (result.success) {
+      await this.loadCommitHistory();
+    }
+    return result;
   }
 
   /**

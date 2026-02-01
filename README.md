@@ -196,42 +196,6 @@ npx electron-rebuild -f -w node-pty -v $(defaults read /Applications/Obsidian.ap
 
 ---
 
-## 개발
-
-### 빌드 명령어
-
-```bash
-npm install              # 의존성 설치
-npm run build            # TypeScript 체크 + 프로덕션 빌드
-npm run dev              # watch 모드
-npm run deploy:test      # 테스트 vault로 배포
-npm run dev:watch        # watch + 자동 배포
-npm run rebuild:electron # node-pty ABI 재빌드
-```
-
-### 프로젝트 구조
-
-```
-src/
-├── main.ts              # 플러그인 진입점
-├── constants.ts         # 설정 타입/기본값
-├── styles.css           # 전역 스타일
-├── terminal/            # xterm.js + node-pty 터미널
-├── git/                 # Git 상태/커밋/브랜치 관리
-├── explorer/            # 파일 탐색기
-├── wizard/              # 온보딩 마법사 (7단계)
-├── settings/            # 설정 탭
-├── mcp/                 # MCP 프리셋 + Health Check
-└── vault-manager/       # 다중 Vault 설치 관리
-```
-
-### MCP 설정 파일 위치
-
-- **사용자 레벨**: `~/.claude.json` (모든 프로젝트 공통)
-- **프로젝트 레벨**: `<vault>/.mcp.json` (Git 공유 가능)
-
----
-
 ## 라이센스
 
 Apache License 2.0 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.

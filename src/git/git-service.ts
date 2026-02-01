@@ -17,6 +17,7 @@ import {
   GitProvider,
   GitConflict,
   ConflictResolution,
+  GitCommitInfo,
 } from "./git-types";
 
 export class GitService {
@@ -974,6 +975,181 @@ npm-debug.log*
       return {
         success: false,
         message: "임시 보관 복원 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  // ===== 커밋 히스토리 =====
+
+  /**
+   * 커밋 로그 조회
+   */
+  async getCommitLog(limit = 50, skip = 0, search?: string): Promise<GitCommitInfo[]> {
+    try {
+      const options: string[] = [
+        `--max-count=${limit}`,
+        `--skip=${skip}`,
+      ];
+
+      if (search && search.trim()) {
+        options.push(`--grep=${search.trim()}`);
+        options.push("--regexp-ignore-case");
+      }
+
+      // simple-git log accepts generic options object or array of strings
+      // usage with array is safer for flags with values
+      const log = await this.git.log(options);
+      const currentHead = await this.getCurrentHead();
+
+      return log.all.map((commit) => ({
+        hash: commit.hash,
+        shortHash: commit.hash.substring(0, 7),
+        message: commit.message,
+        author: commit.author_name,
+        date: new Date(commit.date),
+        isCurrent: commit.hash === currentHead,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * 커밋 상세 정보 (변경된 파일 목록) 조회
+   */
+  async getCommitDetails(hash: string): Promise<GitFile[]> {
+    try {
+      // --name-status: 파일 상태와 이름만 표시
+      const result = await this.git.show([
+        "--name-status",
+        "--pretty=format:", // 커밋 메타데이터는 제외
+        hash,
+      ]);
+
+      return this.parseDiffNameStatus(result);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * git show output 파싱
+   */
+  private parseDiffNameStatus(output: string): GitFile[] {
+    const files: GitFile[] = [];
+    const lines = output.split("\n").filter((line) => line.trim());
+
+    for (const line of lines) {
+      // Format: A    path/to/file
+      // status might be M, A, D, R100, etc.
+      const parts = line.trim().split(/\s+/);
+      const statusCode = parts[0];
+      const filePath = parts.slice(1).join(" "); // 공백이 포함된 파일명 처리
+
+      if (!statusCode || !filePath) continue;
+
+      let status: GitFileStatus = "modified";
+      if (statusCode.startsWith("A")) status = "added";
+      else if (statusCode.startsWith("D")) status = "deleted";
+      else if (statusCode.startsWith("R")) status = "renamed";
+      else if (statusCode.startsWith("C")) status = "copied";
+      // M is modified
+
+      files.push({
+        path: filePath,
+        status,
+        staged: false, // 히스토리에서는 staged 개념이 없음
+        displayName: path.basename(filePath),
+      });
+    }
+
+    return files;
+  }
+
+  /**
+   * 현재 HEAD의 커밋 해시 조회
+   */
+  private async getCurrentHead(): Promise<string> {
+    try {
+      const result = await this.git.raw(["rev-parse", "HEAD"]);
+      return result.trim();
+    } catch {
+      return "";
+    }
+  }
+
+  /**
+   * Detached HEAD 상태 확인
+   */
+  async isDetachedHead(): Promise<boolean> {
+    try {
+      // symbolic-ref가 실패하면 detached HEAD 상태
+      await this.git.raw(["symbolic-ref", "HEAD"]);
+      return false;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * 특정 커밋으로 이동 (Checkout)
+   */
+  async checkoutCommit(hash: string): Promise<GitOperationResult> {
+    try {
+      // 변경사항 확인
+      const status = await this.git.status();
+      if (status.files.length > 0) {
+        return {
+          success: false,
+          message: "저장하지 않은 변경사항이 있습니다",
+          error: "먼저 변경사항을 저장하거나 취소하세요.",
+        };
+      }
+
+      await this.git.checkout(hash);
+      return {
+        success: true,
+        message: "과거 버전으로 이동했습니다",
+        details: `커밋 ${hash.substring(0, 7)}로 이동했습니다. 이 상태에서 파일을 확인할 수 있습니다.`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "버전 이동 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * 최신 버전으로 복귀
+   */
+  async returnToLatest(): Promise<GitOperationResult> {
+    try {
+      // 변경사항 확인
+      const status = await this.git.status();
+      if (status.files.length > 0) {
+        return {
+          success: false,
+          message: "저장하지 않은 변경사항이 있습니다",
+          error: "먼저 변경사항을 저장하거나 취소하세요.",
+        };
+      }
+
+      // 현재 브랜치 이름 가져오기 (detached 상태이면 main/master로)
+      const mainBranch = await this.findMainBranch();
+      await this.git.checkout(mainBranch);
+
+      return {
+        success: true,
+        message: "최신 버전으로 돌아왔습니다",
+        details: `'${mainBranch}' 브랜치의 최신 상태로 복귀했습니다.`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "최신 버전 복귀 실패",
         error: error instanceof Error ? error.message : String(error),
       };
     }

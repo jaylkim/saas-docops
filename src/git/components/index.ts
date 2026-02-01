@@ -9,5 +9,6 @@ export { renderCommitForm } from "./commit-form";
 export { renderWorkspacePanel } from "./workspace-panel";
 export { renderReviewPanel } from "./review-panel";
 export { renderConflictPanel } from "./conflict-panel";
+export { renderHistoryPanel } from "./history-panel";
 export { EditRemoteModal } from "./edit-remote-modal";
 export { DeleteRemoteModal } from "./delete-remote-modal";
