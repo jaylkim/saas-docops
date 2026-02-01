@@ -142,10 +142,28 @@ check_prerequisites() {
     log_info "Checking prerequisites..."
     local missing=()
 
+    # Core Utils
+    if ! command -v curl &> /dev/null; then missing+=("curl"); fi
+    if ! command -v unzip &> /dev/null; then missing+=("unzip"); fi
+
     # Python3 (required for JSON parsing)
     if ! command -v python3 &> /dev/null; then
         log_error "python3 is required but not found."
         exit 1
+    fi
+
+    # Git (Required)
+    if ! command -v git &> /dev/null; then
+        log_error "git is required but not found."
+        log_warn "Please install Git: xcode-select --install"
+        exit 1
+    fi
+
+    # Git Configuration (Warning only)
+    if [ -z "$(git config --global user.name)" ] || [ -z "$(git config --global user.email)" ]; then
+        log_warn "Git global user identity is not configured."
+        log_warn "You may encounter errors when committing."
+        log_warn "Recommended: git config --global user.name 'Your Name' && git config --global user.email 'email@example.com'"
     fi
 
     # Node/npm

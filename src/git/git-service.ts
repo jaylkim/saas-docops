@@ -813,6 +813,12 @@ npm-debug.log*
         await this.git.checkout(["--ours", file]);
       } else if (resolution === "theirs") {
         await this.git.checkout(["--theirs", file]);
+      } else if (resolution === "manual") {
+        // manual인 경우 git add 하지 않고 안내만 반환
+        return {
+          success: true,
+          message: `'${file}' 파일을 직접 편집한 후 저장 탭에서 추가하세요.`,
+        };
       }
 
       await this.git.add(file);

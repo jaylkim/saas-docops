@@ -104,14 +104,17 @@ export function renderReviewPanel(
 
       if (prLink) {
         // 브라우저에서 열기
-        window.open(prLink.url, "_blank");
-
-        new Notice("검토 요청 페이지를 열었습니다");
+        const opened = window.open(prLink.url, "_blank");
+        if (!opened) {
+          new Notice("팝업이 차단되었습니다. 브라우저 설정을 확인하세요.");
+        } else {
+          new Notice("검토 요청 페이지를 열었습니다");
+        }
 
         // PR 링크 정보 표시
         showPRLinkInfo(container, prLink);
       } else {
-        new Notice("PR 링크를 생성할 수 없습니다");
+        new Notice("PR 링크를 생성할 수 없습니다. 원격 저장소 설정을 확인하세요.");
       }
     } catch (error) {
       new Notice(`오류 발생: ${error}`);
@@ -163,8 +166,12 @@ function showPRLinkInfo(container: HTMLElement, prLink: PRLinkInfo): void {
   });
 
   copyBtn.onclick = async () => {
-    await navigator.clipboard.writeText(prLink.url);
-    new Notice("링크가 복사되었습니다");
+    try {
+      await navigator.clipboard.writeText(prLink.url);
+      new Notice("링크가 복사되었습니다");
+    } catch {
+      new Notice("클립보드 복사에 실패했습니다");
+    }
   };
 }
 
