@@ -318,4 +318,7 @@ npm run deploy:test
   - `shell.openPath()`: 시스템 앱으로 열기
   - `shell.showItemInFolder()`: Finder/Explorer에서 보기
 - 리본 아이콘 및 명령어 팔레트 추가
+- **파일 탐색기 최적화 (UX & 성능):**
+  - **Smart Auto-Refresh**: Vault 이벤트(`create`, `delete`, `rename`) 및 `window.focus` 감지로 자동 새로고침 (네이티브 감각)
+  - **Debouncing**: 대량 파일 변경 시 UI 버벅임 방지를 위한 `refreshDebounced` 로직 적용
 

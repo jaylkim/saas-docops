@@ -237,6 +237,12 @@ npm-debug.log*
       const currentBranch = status.current || "main";
       const isMainBranch = this.isMainBranch(currentBranch);
 
+      // 원격은 있지만 추적 브랜치가 없는지 확인 (첫 push 필요 여부)
+      const needsInitialPush = await this.checkNeedsInitialPush(
+        remoteInfo.hasRemote,
+        currentBranch
+      );
+
       return {
         isRepo: true,
         currentBranch,
@@ -251,10 +257,61 @@ npm-debug.log*
         hasRemote: remoteInfo.hasRemote,
         remoteUrl: remoteInfo.url,
         lastFetch: null,
+        needsInitialPush,
       };
     } catch (error) {
       console.error("Git status error:", error);
       return this.getEmptyStatus();
+    }
+  }
+
+  /**
+   * 원격 저장소는 있지만 추적 브랜치가 없는지 확인
+   * (빈 원격 저장소에 첫 push가 필요한 경우)
+   */
+  private async checkNeedsInitialPush(
+    hasRemote: boolean,
+    currentBranch: string
+  ): Promise<boolean> {
+    if (!hasRemote) return false;
+
+    try {
+      // 현재 브랜치의 upstream 설정 확인
+      const trackingBranch = await this.git.raw([
+        "config",
+        "--get",
+        `branch.${currentBranch}.remote`,
+      ]);
+
+      // upstream이 설정되어 있으면 false
+      if (trackingBranch.trim()) {
+        return false;
+      }
+
+      // 커밋이 있는지 확인 (커밋이 없으면 push할 것도 없음)
+      const hasCommits = await this.hasAnyCommits();
+      return hasCommits;
+    } catch {
+      // config가 없으면 upstream이 없다는 의미
+      // 커밋이 있는지 확인
+      try {
+        const hasCommits = await this.hasAnyCommits();
+        return hasCommits;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  /**
+   * 커밋이 하나라도 있는지 확인
+   */
+  private async hasAnyCommits(): Promise<boolean> {
+    try {
+      await this.git.raw(["rev-parse", "HEAD"]);
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -276,6 +333,7 @@ npm-debug.log*
       hasRemote: false,
       remoteUrl: null,
       lastFetch: null,
+      needsInitialPush: false,
     };
   }
 
@@ -466,7 +524,18 @@ npm-debug.log*
    */
   async push(): Promise<GitOperationResult> {
     try {
-      await this.git.push();
+      const currentBranch = await this.getCurrentBranch();
+
+      // upstream이 설정되어 있는지 확인
+      const hasUpstream = await this.hasUpstreamBranch(currentBranch);
+
+      if (hasUpstream) {
+        await this.git.push();
+      } else {
+        // 첫 push: upstream 설정과 함께 push
+        await this.git.push(["-u", "origin", currentBranch]);
+      }
+
       return {
         success: true,
         message: "성공적으로 올렸습니다!",
@@ -488,6 +557,22 @@ npm-debug.log*
         message: "올리기 실패",
         error: errorMsg,
       };
+    }
+  }
+
+  /**
+   * 현재 브랜치에 upstream이 설정되어 있는지 확인
+   */
+  private async hasUpstreamBranch(branchName: string): Promise<boolean> {
+    try {
+      const remote = await this.git.raw([
+        "config",
+        "--get",
+        `branch.${branchName}.remote`,
+      ]);
+      return !!remote.trim();
+    } catch {
+      return false;
     }
   }
 

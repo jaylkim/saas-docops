@@ -76,10 +76,20 @@ export class ExplorerState {
 
   // ===== 상태 업데이트 =====
 
+  private debounceTimer: number | null = null;
+
   /**
    * 파일 목록 새로고침
    */
   async refresh(): Promise<void> {
+    // 이미 로딩 중이면 스킵하지 않음 (최신 상태 반영 보장)
+
+    // 디바운스 타이머 취소
+    if (this.debounceTimer) {
+      window.clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+
     this.setState({ loading: true, error: null });
 
     try {
@@ -99,6 +109,21 @@ export class ExplorerState {
         error: error instanceof Error ? error.message : "파일 목록 조회 실패",
       });
     }
+  }
+
+  /**
+   * 디바운스된 새로고침 (이벤트 리스너용)
+   * 여러 파일 변경 이벤트가 발생할 때 마지막 이벤트 후 한 번만 실행
+   */
+  refreshDebounced(delay = 100): void {
+    if (this.debounceTimer) {
+      window.clearTimeout(this.debounceTimer);
+    }
+
+    this.debounceTimer = window.setTimeout(() => {
+      this.refresh();
+      this.debounceTimer = null;
+    }, delay);
   }
 
   /**

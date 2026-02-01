@@ -59,6 +59,22 @@ export class ExplorerView extends ItemView {
 
     // 초기 로드
     await this.explorerState.refresh();
+
+    // Vault 이벤트 리스너 등록 (자동 새로고침)
+    this.registerEvent(
+      this.app.vault.on("create", () => this.explorerState?.refreshDebounced())
+    );
+    this.registerEvent(
+      this.app.vault.on("delete", () => this.explorerState?.refreshDebounced())
+    );
+    this.registerEvent(
+      this.app.vault.on("rename", () => this.explorerState?.refreshDebounced())
+    );
+
+    // 외부 변경 감지 (창 포커스 시)
+    this.registerDomEvent(window, "focus", () => {
+      this.explorerState?.refreshDebounced(500); // 약간의 딜레이
+    });
   }
 
   async onClose(): Promise<void> {

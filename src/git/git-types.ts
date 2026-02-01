@@ -45,6 +45,7 @@ export interface GitStatus {
   hasRemote: boolean;
   remoteUrl: string | null;
   lastFetch: Date | null;
+  needsInitialPush: boolean; // 원격은 있지만 추적 브랜치가 없는 경우 (첫 push 필요)
 }
 
 // 충돌 정보

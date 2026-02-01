@@ -47,7 +47,28 @@ export function renderSyncPanel(
     return; // 가져오기가 있으면 다른 액션 숨김
   }
 
-  // 2. 대기중인 업로드 (로컬 변경사항 없이 커밋만 있는 경우)
+  // 2. 첫 동기화 (원격 저장소 연결 후 첫 push)
+  if (status.needsInitialPush && status.files.length === 0) {
+    const initialPushBtn = quickActions.createEl("button", {
+      cls: "git-action-btn git-action-push git-action-primary",
+      attr: { style: "width: 100%; justify-content: center;" }
+    });
+    const pushIcon = initialPushBtn.createEl("span", { cls: "git-action-icon" });
+    setIcon(pushIcon, "cloud-upload");
+    initialPushBtn.createEl("span", { cls: "git-action-label", text: "클라우드에 첫 업로드" });
+
+    initialPushBtn.onclick = async () => {
+      initialPushBtn.disabled = true;
+      initialPushBtn.addClass("git-btn-loading");
+      const result = await gitState.push();
+      initialPushBtn.removeClass("git-btn-loading");
+      initialPushBtn.disabled = false;
+      showNotice(result.success, result.message);
+    };
+    return;
+  }
+
+  // 3. 대기중인 업로드 (로컬 변경사항 없이 커밋만 있는 경우)
   if (status.ahead > 0 && status.files.length === 0) {
     const pushBtn = quickActions.createEl("button", {
       cls: "git-action-btn git-action-push git-action-primary",
@@ -68,9 +89,9 @@ export function renderSyncPanel(
     return;
   }
 
-  // 3. 최신 상태 (변경사항은 file-list/commit-form에서 처리)
+  // 4. 최신 상태 (변경사항은 file-list/commit-form에서 처리)
   // 원격 저장소가 있을 때만 "동기화됨" 메시지 표시
-  if (status.hasRemote && status.ahead === 0 && status.behind === 0) {
+  if (status.hasRemote && status.ahead === 0 && status.behind === 0 && !status.needsInitialPush) {
     const syncedEl = quickActions.createEl("div", {
       cls: "git-synced-message",
       attr: { style: "text-align: center; color: var(--text-muted); padding: 10px;" }
