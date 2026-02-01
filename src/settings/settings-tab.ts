@@ -12,6 +12,13 @@ import {
   getCachedHealth,
   clearHealthCache,
 } from "../mcp/health-checker";
+import {
+  checkForUpdates,
+  getInstallCommand,
+  getReleasesPageUrl,
+  formatReleaseDate,
+  type UpdateCheckResult,
+} from "../updater";
 
 /**
  * Settings Tab for SaaS DocOps
@@ -21,6 +28,8 @@ export class IntegrationSettingsTab extends PluginSettingTab {
   private envChecker: EnvironmentChecker;
   private healthResults: Record<string, MCPHealthResult> = {};
   private isCheckingHealth: boolean = false;
+  private updateCheckResult: UpdateCheckResult | null = null;
+  private isCheckingUpdate: boolean = false;
 
   constructor(app: App, plugin: IntegrationAIPlugin) {
     super(app, plugin);
@@ -47,6 +56,9 @@ export class IntegrationSettingsTab extends PluginSettingTab {
     // Header
     containerEl.createEl("h2", { text: "SaaS DocOps 설정" });
 
+    // Update Notification Section (at the top)
+    this.renderUpdateSection(containerEl);
+
     // Wizard Section
     this.renderWizardSection(containerEl);
 
@@ -58,6 +70,144 @@ export class IntegrationSettingsTab extends PluginSettingTab {
 
     // MCP Settings Section
     this.renderMcpSection(containerEl);
+  }
+
+  private renderUpdateSection(containerEl: HTMLElement): void {
+    const section = containerEl.createDiv({ cls: "integration-settings-section" });
+    const header = section.createEl("h3", { cls: "settings-section-header" });
+    const headerIcon = header.createSpan({ cls: "settings-section-icon" });
+    setIcon(headerIcon, "download");
+    header.createSpan({ text: " 버전 및 업데이트" });
+
+    // Current version display
+    const currentVersion = this.plugin.manifest.version;
+    const versionInfo = section.createDiv({ cls: "update-version-info" });
+    const versionRow = versionInfo.createDiv({ cls: "update-version-row" });
+    versionRow.createSpan({ text: "현재 버전: " });
+    versionRow.createEl("code", { text: `v${currentVersion}`, cls: "update-version-badge" });
+
+    // Update status container (will be populated by check)
+    const updateStatusContainer = section.createDiv({ cls: "update-status-container" });
+
+    // Check button
+    new Setting(section)
+      .setName("업데이트 확인")
+      .setDesc("GitHub에서 최신 버전을 확인합니다")
+      .addButton((btn) =>
+        btn
+          .setButtonText(this.isCheckingUpdate ? "확인 중..." : "확인")
+          .setDisabled(this.isCheckingUpdate)
+          .onClick(async () => {
+            this.isCheckingUpdate = true;
+            btn.setButtonText("확인 중...");
+            btn.setDisabled(true);
+
+            try {
+              this.updateCheckResult = await checkForUpdates(currentVersion, true);
+              this.renderUpdateStatus(updateStatusContainer);
+            } catch (e) {
+              console.error("[Settings] Update check failed:", e);
+              new Notice("업데이트 확인 실패");
+            } finally {
+              this.isCheckingUpdate = false;
+              btn.setButtonText("확인");
+              btn.setDisabled(false);
+            }
+          })
+      );
+
+    // Show cached result if available
+    if (this.updateCheckResult) {
+      this.renderUpdateStatus(updateStatusContainer);
+    }
+
+    // Auto-check on first display
+    if (!this.updateCheckResult && !this.isCheckingUpdate) {
+      this.checkForUpdatesBackground(currentVersion, updateStatusContainer);
+    }
+  }
+
+  private async checkForUpdatesBackground(
+    currentVersion: string,
+    container: HTMLElement
+  ): Promise<void> {
+    try {
+      this.updateCheckResult = await checkForUpdates(currentVersion);
+      this.renderUpdateStatus(container);
+    } catch (e) {
+      console.error("[Settings] Background update check failed:", e);
+    }
+  }
+
+  private renderUpdateStatus(container: HTMLElement): void {
+    container.empty();
+
+    if (!this.updateCheckResult) return;
+
+    const { hasUpdate, latestVersion, releaseInfo, error } = this.updateCheckResult;
+
+    if (error) {
+      // Error state
+      const errorDiv = container.createDiv({ cls: "update-error-box" });
+      const errorIcon = errorDiv.createSpan({ cls: "update-error-icon" });
+      setIcon(errorIcon, "alert-triangle");
+      errorDiv.createSpan({ text: ` 확인 실패: ${error}`, cls: "update-error-text" });
+      return;
+    }
+
+    if (hasUpdate && latestVersion && releaseInfo) {
+      // Update available
+      const updateBox = container.createDiv({ cls: "update-available-box" });
+
+      const updateHeader = updateBox.createDiv({ cls: "update-available-header" });
+      const updateIcon = updateHeader.createSpan({ cls: "update-available-icon" });
+      setIcon(updateIcon, "arrow-up-circle");
+      updateHeader.createSpan({ text: ` 새 버전 사용 가능: v${latestVersion}` });
+
+      if (releaseInfo.publishedAt) {
+        updateBox.createDiv({
+          text: `릴리즈 날짜: ${formatReleaseDate(releaseInfo.publishedAt)}`,
+          cls: "update-release-date",
+        });
+      }
+
+      // Install command
+      const cmdSection = updateBox.createDiv({ cls: "update-cmd-section" });
+      cmdSection.createEl("p", { text: "설치 명령어:", cls: "update-cmd-label" });
+
+      const cmdBox = cmdSection.createDiv({ cls: "update-cmd-box" });
+      const cmdCode = cmdBox.createEl("code", { text: getInstallCommand() });
+
+      const copyBtn = cmdBox.createEl("button", {
+        cls: "update-cmd-copy-btn",
+        attr: { title: "복사" },
+      });
+      setIcon(copyBtn, "copy");
+      copyBtn.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(getInstallCommand());
+        new Notice("설치 명령어가 복사되었습니다");
+        setIcon(copyBtn, "check");
+        setTimeout(() => setIcon(copyBtn, "copy"), 2000);
+      });
+
+      // Release page link
+      const linkSection = updateBox.createDiv({ cls: "update-link-section" });
+      const releaseLink = linkSection.createEl("a", {
+        text: "GitHub 릴리즈 페이지 열기 →",
+        href: releaseInfo.htmlUrl || getReleasesPageUrl(),
+      });
+      releaseLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        const { shell } = require("electron");
+        shell.openExternal(releaseInfo.htmlUrl || getReleasesPageUrl());
+      });
+    } else {
+      // Up to date
+      const upToDateBox = container.createDiv({ cls: "update-uptodate-box" });
+      const upToDateIcon = upToDateBox.createSpan({ cls: "update-uptodate-icon" });
+      setIcon(upToDateIcon, "check-circle");
+      upToDateBox.createSpan({ text: " 최신 버전을 사용 중입니다" });
+    }
   }
 
   private renderWizardSection(containerEl: HTMLElement): void {

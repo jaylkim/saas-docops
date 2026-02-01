@@ -3141,3 +3141,156 @@
   min-width: 400px;
 }
 }
+
+/* ===== Update Notification Section ===== */
+
+.update-version-info {
+  margin-bottom: 12px;
+}
+
+.update-version-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.update-version-badge {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  padding: 3px 8px;
+  background: var(--background-secondary);
+  border-radius: 4px;
+}
+
+.update-status-container {
+  margin-bottom: 12px;
+}
+
+/* Update available box */
+.update-available-box {
+  padding: 14px 16px;
+  background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.08);
+  border: 1px solid rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.2);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.update-available-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--saas-accent-blue);
+  margin-bottom: 8px;
+}
+
+.update-release-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.update-cmd-section {
+  margin-bottom: 12px;
+}
+
+.update-cmd-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 6px 0;
+}
+
+.update-cmd-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--background-primary);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.update-cmd-box code {
+  flex: 1;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.update-cmd-copy-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.update-cmd-copy-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.update-link-section {
+  margin-top: 8px;
+}
+
+.update-link-section a {
+  font-size: 12px;
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+.update-link-section a:hover {
+  text-decoration: underline;
+}
+
+/* Up to date box */
+.update-uptodate-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(0, 200, 83, 0.1);
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-green, #00c853);
+}
+
+.update-uptodate-icon {
+  font-size: 16px;
+}
+
+/* Error box */
+.update-error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.update-error-icon {
+  font-size: 16px;
+  color: var(--color-yellow, #ffc107);
+}
+
+.update-error-text {
+  color: var(--text-muted);
+}
+
+/* Icon sizing for update section */
+.update-available-icon svg,
+.update-uptodate-icon svg,
+.update-error-icon svg,
+.update-cmd-copy-btn svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}

@@ -1,0 +1,164 @@
+# SaaS DocOps - Release Workflow
+# Triggered on version tags (v*)
+# Builds for macOS arm64 and x64, creates GitHub Release
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  # Obsidian Electron version - update when Obsidian updates
+  ELECTRON_VERSION: '33.3.2'
+
+jobs:
+  build:
+    name: Build (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14        # Apple Silicon runner
+            arch: arm64
+            platform: darwin-arm64
+          - os: macos-13        # Intel runner
+            arch: x64
+            platform: darwin-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Rebuild node-pty for Electron
+        run: npx electron-rebuild -f -w node-pty -v ${{ env.ELECTRON_VERSION }}
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create release package
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PLATFORM="${{ matrix.platform }}"
+          PACKAGE_NAME="saas-docops-${VERSION}-${PLATFORM}"
+
+          # Create package directory
+          mkdir -p "${PACKAGE_NAME}"
+
+          # Copy main files
+          cp main.js "${PACKAGE_NAME}/"
+          cp styles.css "${PACKAGE_NAME}/"
+          cp manifest.json "${PACKAGE_NAME}/"
+
+          # Copy node-pty (native module)
+          mkdir -p "${PACKAGE_NAME}/node_modules"
+          cp -r node_modules/node-pty "${PACKAGE_NAME}/node_modules/"
+
+          # Copy node-addon-api (peer dependency)
+          cp -r node_modules/node-addon-api "${PACKAGE_NAME}/node_modules/"
+
+          # Clean up unnecessary files
+          rm -rf "${PACKAGE_NAME}/node_modules/node-pty/node_modules" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-pty/src" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-pty/deps" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-pty/binding.gyp" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-pty/*.md" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-addon-api/*.md" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-addon-api/doc" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-addon-api/test" 2>/dev/null || true
+          rm -rf "${PACKAGE_NAME}/node_modules/node-addon-api/tools" 2>/dev/null || true
+
+          # Create zip
+          zip -r "${PACKAGE_NAME}.zip" "${PACKAGE_NAME}"
+
+          # Show package info
+          echo "Package created: ${PACKAGE_NAME}.zip"
+          ls -lh "${PACKAGE_NAME}.zip"
+          echo ""
+          echo "Contents:"
+          unzip -l "${PACKAGE_NAME}.zip" | head -30
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: saas-docops-${{ steps.version.outputs.VERSION }}-${{ matrix.platform }}
+          path: saas-docops-${{ steps.version.outputs.VERSION }}-${{ matrix.platform }}.zip
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts -type f -name "*.zip"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: SaaS DocOps ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## SaaS DocOps ${{ steps.version.outputs.VERSION }}
+
+            Claude Code를 Obsidian에서 GUI로 사용하는 플러그인입니다.
+
+            ### 설치 방법
+
+            **원라인 설치 (권장):**
+            ```bash
+            curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | bash
+            ```
+
+            **수동 설치:**
+            1. 아래에서 플랫폼에 맞는 zip 파일 다운로드
+               - Apple Silicon (M1/M2/M3): `darwin-arm64`
+               - Intel Mac: `darwin-x64`
+            2. Obsidian vault의 `.obsidian/plugins/saas-docops/` 폴더에 압축 해제
+            3. Settings → Community Plugins에서 활성화
+
+            ### 변경 사항
+
+            릴리즈 노트를 참조하세요.
+
+            ---
+
+            Built with Obsidian Electron v${{ env.ELECTRON_VERSION }}
+          files: |
+            artifacts/**/*.zip
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, 'alpha') || contains(steps.version.outputs.VERSION, 'beta') || contains(steps.version.outputs.VERSION, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
