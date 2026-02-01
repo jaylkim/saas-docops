@@ -307,23 +307,7 @@ export function clearHealthCache(): void {
   healthCache.clear();
 }
 
-/**
- * Get status icon for health status (emoji - deprecated, use getHealthStatusIconName)
- */
-export function getHealthStatusIcon(status: MCPHealthStatus): string {
-  switch (status) {
-    case "healthy":
-      return "✅";
-    case "unhealthy":
-      return "❌";
-    case "disabled":
-      return "⏸️";
-    case "checking":
-      return "🔄";
-    default:
-      return "❓";
-  }
-}
+
 
 /**
  * Get Lucide icon name for health status

@@ -2,9 +2,9 @@
  * Commit Form - 저장(커밋) 메시지 입력
  */
 
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { GitState } from "../git-state";
-import { GitViewState, GIT_ICONS } from "../git-types";
+import { GitViewState, GIT_ICONS, GIT_TEXT_ICONS } from "../git-types";
 import { getExtendedPath } from "../../wizard/environment-checker";
 
 export function renderCommitForm(
@@ -12,6 +12,7 @@ export function renderCommitForm(
   state: GitViewState,
   gitState: GitState
 ): void {
+  // ... (unchanged code omitted, reusing surrounding logic in mind) ...
   container.empty();
   container.addClass("git-commit-form");
 
@@ -107,9 +108,15 @@ export function renderCommitForm(
   // 저장 & 올리기 버튼 (메인)
   const commitPushBtn = actions.createEl("button", {
     cls: "git-btn git-btn-primary git-btn-large", // Large button
-    attr: { style: "width: 100%; justify-content: center;" }, // Full width
-    text: `${GIT_ICONS.push} 버전 저장 & 업로드`
+    attr: { style: "width: 100%; justify-content: center;" } // Full width
   });
+
+  // Icon
+  const btnIcon = commitPushBtn.createEl("span", { cls: "git-btn-icon" });
+  setIcon(btnIcon, GIT_ICONS.push);
+
+  // Text
+  commitPushBtn.createEl("span", { text: "버전 저장 & 업로드" });
 
   if (!state.commitMessage.trim() || !hasSelection) {
     commitPushBtn.disabled = true;
@@ -136,7 +143,8 @@ async function handleCommit(gitState: GitState, state: GitViewState): Promise<vo
   }
 
   const result = await gitState.commitAndPush();
-  const icon = result.success ? GIT_ICONS.success : GIT_ICONS.error;
+  // Notice에는 텍스트 이모지 사용
+  const icon = result.success ? GIT_TEXT_ICONS.success : GIT_TEXT_ICONS.error;
   new Notice(`${icon} ${result.message}`);
 }
 

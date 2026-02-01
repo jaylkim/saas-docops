@@ -112,8 +112,8 @@ export const GIT_TERMS = {
   behind: "가져올 저장점",
 } as const;
 
-// 상태 아이콘 (이모지 - 레거시, 점진적으로 제거 예정)
-export const GIT_ICONS = {
+// 상태 아이콘 (이모지 - 텍스트 표시용, 예: Notice)
+export const GIT_TEXT_ICONS = {
   branch: "🌿",
   main: "🏠",
   commit: "💾",
@@ -154,3 +154,6 @@ export const GIT_ICON_NAMES = {
   sync: "refresh-cw",
   info: "info",
 } as const;
+
+// 상태 아이콘 (수정됨: Lucide 아이콘 이름 참조)
+export const GIT_ICONS = GIT_ICON_NAMES;

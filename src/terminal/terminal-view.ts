@@ -492,23 +492,39 @@ export class TerminalView extends ItemView {
       cls: "integration-terminal-error",
     });
 
-    errorDiv.innerHTML = `
-      <div style="text-align: center; padding: 24px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-        <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px; color: var(--text-error);">
-          터미널 초기화 실패
-        </div>
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">
-          ${message}
-        </div>
-        <div style="font-size: 12px; color: var(--text-faint);">
-          다음 명령어를 실행해보세요:<br>
-          <code style="background: var(--background-secondary); padding: 4px 8px; border-radius: 4px; margin-top: 8px; display: inline-block;">
-            npm run rebuild:electron
-          </code>
-        </div>
-      </div>
-    `;
+    const content = errorDiv.createDiv({
+      attr: { style: "text-align: center; padding: 24px;" },
+    });
+
+    const iconDiv = content.createDiv({
+      attr: { style: "margin-bottom: 16px;" },
+    });
+
+    const iconSpan = iconDiv.createSpan({
+      attr: { style: "display: inline-block; width: 48px; height: 48px; color: var(--text-error);" },
+    });
+
+    import("obsidian").then(({ setIcon }) => setIcon(iconSpan, "alert-triangle"));
+
+    content.createDiv({
+      text: "터미널 초기화 실패",
+      attr: { style: "font-size: 16px; font-weight: 500; margin-bottom: 8px; color: var(--text-error);" },
+    });
+
+    content.createDiv({
+      text: message,
+      attr: { style: "font-size: 14px; color: var(--text-muted); margin-bottom: 16px;" },
+    });
+
+    const helpDiv = content.createDiv({
+      attr: { style: "font-size: 12px; color: var(--text-faint);" },
+    });
+    helpDiv.createDiv({ text: "다음 명령어를 실행해보세요:" });
+
+    helpDiv.createEl("code", {
+      text: "npm run rebuild:electron",
+      attr: { style: "background: var(--background-secondary); padding: 4px 8px; border-radius: 4px; margin-top: 8px; display: inline-block;" },
+    });
   }
 
   /**

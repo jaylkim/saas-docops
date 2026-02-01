@@ -369,3 +369,16 @@ npm run deploy:test
     - 수정 버튼: 연필 아이콘, 기존 URL이 입력 필드에 채워짐
     - 삭제 버튼: 링크 해제 아이콘, 주황색 경고 + "로컬 저장소 유지됨" 안내
 
+### 세션 14 (2025-02-01)
+- **UI/UX 감사 및 폴리싱 (Audit & Polish)**:
+  - **아이콘 시스템 개선**:
+    - **Obsidian Native Look**: `commit-form.ts`, `terminal-view.ts` 등의 UI 요소에서 하드코딩된 이모지를 제거하고 Obsidian의 `setIcon` (Lucide Icons) 사용
+    - **Notice 메시지 유지**: 사용자 알림(Toast) 메시지에는 가독성을 위해 텍스트 이모지(`GIT_TEXT_ICONS`) 유지
+  - **CRUD 기능 검증 완료**:
+    - **Remote Repos**: 추가/수정(Edit)/삭제(Unlink) 로직 전체 검증
+    - **MCP Servers**: 설정 마법사 및 설정 탭에서 Add/Edit/Delete/Toggle 전체 동작 확인
+  - **안정성 강화**:
+    - `terminal-view.ts`의 `renderError` 함수에서 발생하던 중복 시그니처 오류 수정 및 DOM API로 리팩토링하여 보안/안정성 확보
+  - **문서 업데이트**:
+    - `PLAN.md` 및 `task.md`를 최신 진행 상황에 맞춰 동기화
+
