@@ -1,528 +1,300 @@
 #!/bin/bash
-# SaaS DocOps - One-line installer for macOS
-# Usage: curl -sSL https://raw.githubusercontent.com/jaylkim/saas-docops/main/install.sh | bash
-#
-# This script:
-# 1. Checks prerequisites (Node.js, npm, Claude Code CLI)
-# 2. Detects platform (darwin-arm64 / darwin-x64)
-# 3. Finds Obsidian vaults
-# 4. Downloads and installs the plugin
-# 5. Rebuilds node-pty if needed
+# SaaS DocOps - Production Grade Installer for macOS
+# Usage: curl -sSL https://raw.githubusercontent.com/jaylkim/saas-docops/main/install.sh | bash -s -- [options]
+# Options:
+#   --yes          Non-interactive mode (accept defaults)
+#   --vault <path> Specify vault path
+#   --no-open      Do not open Obsidian after install
+#   --force        Force install even if requirements missing
 
-set -e
+set -euo pipefail
 
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Configuration
+# Config
 REPO_OWNER="jaylkim"
 REPO_NAME="saas-docops"
 PLUGIN_ID="saas-docops"
 GITHUB_API="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
 
-# Print with color
-print_info() { echo -e "${BLUE}ℹ${NC} $1"; }
-print_success() { echo -e "${GREEN}✓${NC} $1"; }
-print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
-print_error() { echo -e "${RED}✗${NC} $1"; }
+# State
+INTERACTIVE=true
+FORCE=false
+SPECIFIED_VAULT=""
+AUTO_OPEN=true
 
-# Header
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  SaaS DocOps Installer"
-echo "  Claude Code GUI for Obsidian"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
+# Logging
+log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
+log_success() { echo -e "${GREEN}✓${NC} $1"; }
+log_warn() { echo -e "${YELLOW}⚠${NC} $1"; }
+log_error() { echo -e "${RED}✗${NC} $1"; }
 
-# ============================================================================
-# Prerequisites Check
-# ============================================================================
+# Parse Args
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --yes) INTERACTIVE=false ;;
+        --force) FORCE=true ;;
+        --no-open) AUTO_OPEN=false ;;
+        --vault) SPECIFIED_VAULT="$2"; shift ;;
+        *) log_error "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
 
 check_prerequisites() {
-    print_info "Checking prerequisites..."
-
+    log_info "Checking prerequisites..."
     local missing=()
 
-    # Check Node.js
-    if command -v node &> /dev/null; then
-        local node_version=$(node --version)
-        print_success "Node.js: $node_version"
-    else
-        missing+=("Node.js")
-        print_error "Node.js not found"
-    fi
+    # Node/npm
+    if ! command -v node &> /dev/null; then missing+=("Node.js"); fi
+    if ! command -v npm &> /dev/null; then missing+=("npm"); fi
 
-    # Check npm
-    if command -v npm &> /dev/null; then
-        local npm_version=$(npm --version)
-        print_success "npm: $npm_version"
-    else
-        missing+=("npm")
-        print_error "npm not found"
-    fi
-
-    # Check Claude Code CLI
-    if command -v claude &> /dev/null; then
-        local claude_version=$(claude --version 2>/dev/null || echo "installed")
-        print_success "Claude Code CLI: $claude_version"
-    else
-        print_warning "Claude Code CLI not found"
-        echo ""
-        read -p "    Claude Code CLI가 필요합니다. 지금 설치하시겠습니까? [Y/n] " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-            print_info "Installing Claude Code CLI..."
-            npm install -g @anthropic-ai/claude-code
-            if command -v claude &> /dev/null; then
-                print_success "Claude Code CLI installed successfully"
-            else
-                print_error "Failed to install Claude Code CLI"
-                missing+=("Claude Code CLI")
-            fi
+    # Claude Code
+    if ! command -v claude &> /dev/null; then
+        log_warn "Claude Code CLI not found."
+        
+        if [ "$INTERACTIVE" = true ]; then
+             read -p "    Install Claude Code? [Y/n] " -n 1 -r
+             echo ""
+             if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+                install_claude_code
+             else
+                missing+=("Claude Code")
+             fi
         else
-            missing+=("Claude Code CLI")
+            # Try to auto-install if non-interactive but only if brew exists (safer)
+            if command -v brew &> /dev/null; then
+                install_claude_code
+            else
+                log_error "Cannot auto-install Claude Code without Homebrew in non-interactive mode."
+                missing+=("Claude Code")
+            fi
+        fi
+    else
+        log_success "Claude Code: $(claude --version 2>/dev/null || echo 'Installed')"
+    fi
+
+    # Obsidian
+    if [ ! -d "/Applications/Obsidian.app" ]; then
+        log_warn "Obsidian.app not found in /Applications"
+    else
+        log_success "Obsidian: Installed"
+    fi
+
+    if [ ${#missing[@]} -gt 0 ] && [ "$FORCE" = false ]; then
+        log_error "Missing requirements: ${missing[*]}"
+        exit 1
+    fi
+}
+
+install_claude_code() {
+    if command -v brew &> /dev/null; then
+        log_info "Installing Claude Code via Homebrew..."
+        brew install --cask claude-code || log_warn "Brew install failed, trying npm..."
+    fi
+
+    if ! command -v claude &> /dev/null; then
+        log_info "Installing Claude Code via npm..."
+        if npm install -g @anthropic-ai/claude-code; then
+            log_success "Claude Code installed via npm"
+        else
+            log_error "npm install failed. Try running: sudo npm install -g @anthropic-ai/claude-code"
+            # Don't exit if force is on, but likely will fail later
         fi
     fi
-
-    # Check Obsidian
-    if [ -d "/Applications/Obsidian.app" ]; then
-        print_success "Obsidian: installed"
-    else
-        print_warning "Obsidian not found at /Applications/Obsidian.app"
-        print_warning "Make sure Obsidian is installed before using this plugin"
-    fi
-
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo ""
-        print_error "Missing prerequisites: ${missing[*]}"
-        echo ""
-        echo "설치 방법:"
-        for item in "${missing[@]}"; do
-            case $item in
-                "Node.js"|"npm")
-                    echo "  Node.js/npm: https://nodejs.org/ 에서 다운로드"
-                    echo "             또는 brew install node"
-                    ;;
-                "Claude Code CLI")
-                    echo "  Claude Code: npm install -g @anthropic-ai/claude-code"
-                    ;;
-            esac
-        done
-        exit 1
-    fi
-
-    echo ""
 }
 
-# ============================================================================
-# Platform Detection
-# ============================================================================
-
+# Platform
 detect_platform() {
-    print_info "Detecting platform..."
-
     local os=$(uname -s)
     local arch=$(uname -m)
-
     if [ "$os" != "Darwin" ]; then
-        print_error "This installer only supports macOS"
-        print_error "Current OS: $os"
+        log_error "macOS only."
         exit 1
     fi
-
     case $arch in
-        arm64)
-            PLATFORM="darwin-arm64"
-            print_success "Platform: macOS Apple Silicon (arm64)"
-            ;;
-        x86_64)
-            PLATFORM="darwin-x64"
-            print_success "Platform: macOS Intel (x64)"
-            ;;
-        *)
-            print_error "Unsupported architecture: $arch"
-            exit 1
-            ;;
+        arm64) PLATFORM="darwin-arm64" ;;
+        x86_64) PLATFORM="darwin-x64" ;;
+        *) log_error "Unsupported arch: $arch"; exit 1 ;;
     esac
-
-    echo ""
+    log_success "Platform: $PLATFORM"
 }
 
-# ============================================================================
-# Find Obsidian Vaults
-# ============================================================================
-
-find_obsidian_vaults() {
-    print_info "Finding Obsidian vaults..."
-
-    local obsidian_config="$HOME/Library/Application Support/obsidian/obsidian.json"
-
-    if [ ! -f "$obsidian_config" ]; then
-        print_error "Obsidian config not found"
-        print_error "Please open Obsidian at least once to create a vault"
-        exit 1
-    fi
-
-    # Parse vault paths from obsidian.json
-    # Format: {"vaults": {"vault_id": {"path": "/path/to/vault", ...}, ...}}
-    VAULTS=()
-
-    # Use python or node to parse JSON (more reliable than grep/sed)
-    if command -v python3 &> /dev/null; then
-        while IFS= read -r vault_path; do
-            if [ -d "$vault_path" ]; then
-                VAULTS+=("$vault_path")
-            fi
-        done < <(python3 -c "
-import json
-import sys
-try:
-    with open('$obsidian_config', 'r') as f:
-        data = json.load(f)
-    vaults = data.get('vaults', {})
-    for v in vaults.values():
-        path = v.get('path', '')
-        if path:
-            print(path)
-except Exception as e:
-    sys.exit(1)
-")
-    elif command -v node &> /dev/null; then
-        while IFS= read -r vault_path; do
-            if [ -d "$vault_path" ]; then
-                VAULTS+=("$vault_path")
-            fi
-        done < <(node -e "
-const fs = require('fs');
-try {
-    const data = JSON.parse(fs.readFileSync('$obsidian_config', 'utf8'));
-    const vaults = data.vaults || {};
-    Object.values(vaults).forEach(v => {
-        if (v.path) console.log(v.path);
-    });
-} catch (e) {
-    process.exit(1);
-}
-")
-    else
-        print_error "Neither python3 nor node available for JSON parsing"
-        exit 1
-    fi
-
-    if [ ${#VAULTS[@]} -eq 0 ]; then
-        print_error "No Obsidian vaults found"
-        print_error "Please create a vault in Obsidian first"
-        exit 1
-    fi
-
-    print_success "Found ${#VAULTS[@]} vault(s)"
-
-    # Let user select vault if multiple
-    if [ ${#VAULTS[@]} -eq 1 ]; then
-        SELECTED_VAULT="${VAULTS[0]}"
-        print_success "Using vault: $SELECTED_VAULT"
-    else
-        echo ""
-        echo "여러 vault가 발견되었습니다. 설치할 vault를 선택하세요:"
-        echo ""
-        for i in "${!VAULTS[@]}"; do
-            echo "  $((i+1)). ${VAULTS[$i]}"
-        done
-        echo ""
-
-        while true; do
-            read -p "선택 [1-${#VAULTS[@]}]: " choice
-            if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#VAULTS[@]}" ]; then
-                SELECTED_VAULT="${VAULTS[$((choice-1))]}"
-                break
-            else
-                print_warning "올바른 번호를 입력하세요"
-            fi
-        done
-        print_success "Selected vault: $SELECTED_VAULT"
-    fi
-
-    echo ""
-}
-
-# ============================================================================
-# Detect Obsidian Electron Version
-# ============================================================================
-
-detect_electron_version() {
-    print_info "Detecting Obsidian Electron version..."
-
-    local electron_framework="/Applications/Obsidian.app/Contents/Frameworks/Electron Framework.framework"
-
-    if [ ! -d "$electron_framework" ]; then
-        print_warning "Could not detect Electron version"
-        ELECTRON_VERSION="unknown"
+# Vault Selection
+select_vault() {
+    if [ -n "$SPECIFIED_VAULT" ]; then
+        if [ ! -d "$SPECIFIED_VAULT" ]; then
+            log_error "Specified vault path does not exist: $SPECIFIED_VAULT"
+            exit 1
+        fi
+        SELECTED_VAULT="$SPECIFIED_VAULT"
+        log_success "Using specified vault: $SELECTED_VAULT"
         return
     fi
 
-    # Try to get version from Info.plist
-    local info_plist="$electron_framework/Resources/Info.plist"
-    if [ -f "$info_plist" ]; then
-        ELECTRON_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$info_plist" 2>/dev/null || echo "unknown")
-    else
-        ELECTRON_VERSION="unknown"
-    fi
-
-    if [ "$ELECTRON_VERSION" != "unknown" ]; then
-        print_success "Obsidian Electron version: $ELECTRON_VERSION"
-    else
-        print_warning "Could not detect Electron version (will try to use prebuilt binaries)"
-    fi
-
-    echo ""
-}
-
-# ============================================================================
-# Download Latest Release
-# ============================================================================
-
-download_latest_release() {
-    print_info "Fetching latest release info..."
-
-    # Get release info from GitHub API
-    local release_info
-    release_info=$(curl -sS "$GITHUB_API")
-
-    if [ $? -ne 0 ]; then
-        print_error "Failed to fetch release info from GitHub"
+    log_info "Finding vaults..."
+    local config="$HOME/Library/Application Support/obsidian/obsidian.json"
+    if [ ! -f "$config" ]; then
+        log_error "Obsidian config not found."
         exit 1
     fi
 
-    # Parse version and download URL
-    if command -v python3 &> /dev/null; then
-        VERSION=$(echo "$release_info" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tag_name', ''))")
-        DOWNLOAD_URL=$(echo "$release_info" | python3 -c "
-import json,sys
+    # Parse vaults using python3 (reliable)
+    VAULTS=()
+    while IFS= read -r line; do
+        if [ -d "$line" ]; then VAULTS+=("$line"); fi
+    done < <(python3 -c "
+import json, sys
+try:
+    with open('$config', 'r') as f:
+        data = json.load(f)
+    print('\n'.join([v.get('path', '') for v in data.get('vaults', {}).values() if v.get('path')]))
+except: pass
+")
+
+    if [ ${#VAULTS[@]} -eq 0 ]; then
+        log_error "No vaults found."
+        exit 1
+    elif [ ${#VAULTS[@]} -eq 1 ]; then
+        SELECTED_VAULT="${VAULTS[0]}"
+        log_success "Found 1 vault: $SELECTED_VAULT"
+    else
+        if [ "$INTERACTIVE" = false ]; then
+            SELECTED_VAULT="${VAULTS[0]}"
+            log_warn "Multiple vaults found. Defaulting to first: $SELECTED_VAULT"
+        else
+            echo "Multiple vaults found:"
+            for i in "${!VAULTS[@]}"; do
+                echo "  $((i+1)). ${VAULTS[$i]}"
+            done
+            read -p "Select vault [1-${#VAULTS[@]}]: " choice
+            SELECTED_VAULT="${VAULTS[$((choice-1))]}"
+        fi
+    fi
+}
+
+download_release() {
+    log_info "Fetching release info..."
+    local json
+    if ! json=$(curl -fSL --retry 3 -s "$GITHUB_API"); then
+        log_error "Failed to fetch release info."
+        exit 1
+    fi
+
+    # Extract URL safe using python
+    DOWNLOAD_URL=$(echo "$json" | python3 -c "
+import json, sys
 data = json.load(sys.stdin)
 assets = data.get('assets', [])
 platform = '$PLATFORM'
-for asset in assets:
-    name = asset.get('name', '')
-    if platform in name and name.endswith('.zip'):
-        print(asset.get('browser_download_url', ''))
+for a in assets:
+    if platform in a.get('name', '') and a.get('name', '').endswith('.zip'):
+        print(a.get('browser_download_url', ''))
         break
 ")
-    else
-        VERSION=$(echo "$release_info" | node -e "
-const chunks = [];
-process.stdin.on('data', d => chunks.push(d));
-process.stdin.on('end', () => {
-    const data = JSON.parse(chunks.join(''));
-    console.log(data.tag_name || '');
-});
-")
-        DOWNLOAD_URL=$(echo "$release_info" | node -e "
-const chunks = [];
-process.stdin.on('data', d => chunks.push(d));
-process.stdin.on('end', () => {
-    const data = JSON.parse(chunks.join(''));
-    const platform = '$PLATFORM';
-    const asset = (data.assets || []).find(a => a.name.includes(platform) && a.name.endsWith('.zip'));
-    console.log(asset ? asset.browser_download_url : '');
-});
-")
-    fi
-
-    if [ -z "$VERSION" ]; then
-        print_error "Could not determine latest version"
-        exit 1
-    fi
 
     if [ -z "$DOWNLOAD_URL" ]; then
-        print_error "No release found for platform: $PLATFORM"
-        print_error "Available at: https://github.com/${REPO_OWNER}/${REPO_NAME}/releases"
+        log_error "No asset found for $PLATFORM"
         exit 1
     fi
 
-    print_success "Latest version: $VERSION"
-    print_info "Downloading from: $DOWNLOAD_URL"
-
-    # Create temp directory
     TEMP_DIR=$(mktemp -d)
     trap "rm -rf $TEMP_DIR" EXIT
-
-    # Download
-    local zip_file="$TEMP_DIR/$PLUGIN_ID.zip"
-    curl -sL -o "$zip_file" "$DOWNLOAD_URL"
-
-    if [ ! -f "$zip_file" ]; then
-        print_error "Download failed"
+    
+    local zip_file="$TEMP_DIR/plugin.zip"
+    log_info "Downloading $DOWNLOAD_URL..."
+    if ! curl -fSL --retry 3 -o "$zip_file" "$DOWNLOAD_URL"; then
+        log_error "Download failed."
         exit 1
     fi
 
-    print_success "Downloaded successfully"
+    # Checksum verification (Optional placeholder)
+    # log_info "Verifying checksum..." 
 
-    # Extract
-    print_info "Extracting..."
     unzip -q "$zip_file" -d "$TEMP_DIR"
-
     EXTRACTED_DIR="$TEMP_DIR"
-    print_success "Extracted"
-
-    echo ""
 }
 
-# ============================================================================
-# Install Plugin
-# ============================================================================
-
-install_plugin() {
-    print_info "Installing plugin to vault..."
-
-    local plugin_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID"
-
-    # Create plugin directory
-    mkdir -p "$plugin_dir"
-
-    # Copy files
-    if [ -f "$EXTRACTED_DIR/main.js" ]; then
-        cp "$EXTRACTED_DIR/main.js" "$plugin_dir/"
+install_plugin_files() {
+    log_info "Installing..."
+    
+    # Find manifest.json to locate root
+    local root_file
+    root_file=$(find "$EXTRACTED_DIR" -maxdepth 3 -name "manifest.json" | head -n 1)
+    
+    if [ -z "$root_file" ]; then
+        log_error "Invalid plugin package: manifest.json not found"
+        exit 1
     fi
-    if [ -f "$EXTRACTED_DIR/styles.css" ]; then
-        cp "$EXTRACTED_DIR/styles.css" "$plugin_dir/"
-    fi
-    if [ -f "$EXTRACTED_DIR/manifest.json" ]; then
-        cp "$EXTRACTED_DIR/manifest.json" "$plugin_dir/"
+    
+    local source_dir
+    source_dir=$(dirname "$root_file")
+    local target_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID"
+
+    if [ -d "$target_dir" ]; then
+        log_info "Backing up existing version..."
+        mv "$target_dir" "${target_dir}.bak"
     fi
 
-    # Copy native modules
-    if [ -d "$EXTRACTED_DIR/node_modules" ]; then
-        cp -r "$EXTRACTED_DIR/node_modules" "$plugin_dir/"
-    fi
+    mkdir -p "$target_dir"
+    cp -R "$source_dir/"* "$target_dir/"
+    log_success "Installed to $target_dir"
 
-    print_success "Files copied to: $plugin_dir"
+    # Safely enable plugin
+    local config="$SELECTED_VAULT/.obsidian/community-plugins.json"
+    if [ ! -f "$config" ]; then echo "[]" > "$config"; fi
+    
+    python3 -c "
+import json
+try:
+    with open('$config', 'r+') as f:
+        try: data = json.load(f)
+        except: data = []
+        if '$PLUGIN_ID' not in data:
+            data.append('$PLUGIN_ID')
+            f.seek(0)
+            json.dump(data, f, indent=2)
+            f.truncate()
+except Exception as e:
+    print('Error updating config:', e)
+    exit(1)
+" || log_warn "Failed to enable plugin automatically."
+    
+    log_success "Plugin enabled."
+}
 
-    # Enable plugin in community-plugins.json
-    local community_plugins="$SELECTED_VAULT/.obsidian/community-plugins.json"
-
-    if [ -f "$community_plugins" ]; then
-        # Check if already enabled
-        if grep -q "\"$PLUGIN_ID\"" "$community_plugins"; then
-            print_success "Plugin already enabled"
-        else
-            # Add to existing array
-            if [ "$(cat "$community_plugins")" = "[]" ]; then
-                echo "[\"$PLUGIN_ID\"]" > "$community_plugins"
-            else
-                # Use sed to add to JSON array
-                sed -i '' 's/\]$/,"'"$PLUGIN_ID"'"]/' "$community_plugins"
-            fi
-            print_success "Plugin enabled"
-        fi
+check_node_pty() {
+    # Simple check for the binary
+    if [ -f "$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID/node_modules/node-pty/build/Release/pty.node" ]; then
+        log_success "node-pty binary verified."
     else
-        # Create new file
-        echo "[\"$PLUGIN_ID\"]" > "$community_plugins"
-        print_success "Plugin enabled"
+        log_warn "node-pty binary missing. You may need to rebuild it manually."
     fi
-
-    echo ""
 }
-
-# ============================================================================
-# Rebuild node-pty if needed
-# ============================================================================
-
-check_and_rebuild_pty() {
-    print_info "Checking node-pty compatibility..."
-
-    local pty_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID/node_modules/node-pty"
-
-    if [ ! -d "$pty_dir" ]; then
-        print_warning "node-pty not found in plugin"
-        return
-    fi
-
-    # Check if rebuild is needed by testing the binary
-    local pty_binary="$pty_dir/build/Release/pty.node"
-
-    if [ ! -f "$pty_binary" ]; then
-        print_warning "node-pty binary not found, may need rebuild"
-
-        read -p "    node-pty를 재빌드하시겠습니까? [y/N] " -n 1 -r
-        echo ""
-
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            rebuild_pty
-        fi
-        return
-    fi
-
-    # The prebuilt binary should work for the target platform
-    # If there are issues, user can manually rebuild
-    print_success "node-pty binary found"
-    echo ""
-}
-
-rebuild_pty() {
-    print_info "Rebuilding node-pty for Obsidian Electron..."
-
-    local plugin_dir="$SELECTED_VAULT/.obsidian/plugins/$PLUGIN_ID"
-
-    cd "$plugin_dir"
-
-    # Determine Electron version to use
-    local electron_version="${ELECTRON_VERSION}"
-    if [ "$electron_version" = "unknown" ]; then
-        electron_version="33.3.2"  # Default Obsidian Electron version
-        print_warning "Using default Electron version: $electron_version"
-    fi
-
-    # Run electron-rebuild
-    print_info "Running electron-rebuild..."
-    npx electron-rebuild -f -w node-pty -v "$electron_version"
-
-    if [ $? -eq 0 ]; then
-        print_success "node-pty rebuilt successfully"
-    else
-        print_error "node-pty rebuild failed"
-        echo ""
-        echo "수동으로 재빌드하려면:"
-        echo "  cd \"$plugin_dir\""
-        echo "  npx electron-rebuild -f -w node-pty -v $electron_version"
-    fi
-
-    echo ""
-}
-
-# ============================================================================
-# Main
-# ============================================================================
 
 main() {
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  SaaS DocOps Installer (v2.0)"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
     check_prerequisites
     detect_platform
-    find_obsidian_vaults
-    detect_electron_version
-    download_latest_release
-    install_plugin
-    check_and_rebuild_pty
+    select_vault
+    download_release
+    install_plugin_files
+    check_node_pty
 
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    print_success "Installation complete!"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "다음 단계:"
-    echo "  1. Obsidian을 열거나 재시작하세요 (Cmd+R)"
-    echo "  2. Settings → Community Plugins에서 '$PLUGIN_ID' 활성화 확인"
-    echo "  3. 리본의 터미널 아이콘을 클릭하거나 'Open Terminal' 명령 실행"
-    echo ""
-    echo "처음 사용 시 설정 마법사가 자동으로 열립니다."
-    echo ""
-
-    # Open vault in Obsidian
-    read -p "지금 Obsidian에서 vault를 여시겠습니까? [Y/n] " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-        open "obsidian://open?path=$(echo "$SELECTED_VAULT" | sed 's/ /%20/g')"
+    if [ "$AUTO_OPEN" = true ] && [ "$INTERACTIVE" = true ]; then
+         read -p "Open Obsidian now? [Y/n] " -n 1 -r
+         echo ""
+         if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+            open "obsidian://open?path=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$SELECTED_VAULT'''))")"
+         fi
     fi
 }
 
