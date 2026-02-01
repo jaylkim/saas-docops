@@ -2,6 +2,8 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
+// WebGL addon disabled - causes rendering issues in Obsidian's Shadow DOM
+// import { WebglAddon } from "@xterm/addon-webgl";
 import { TERMINAL_VIEW_TYPE } from "../constants";
 import type IntegrationAIPlugin from "../main";
 import { PTYManager } from "./pty-manager";
@@ -161,7 +163,12 @@ export class TerminalView extends ItemView {
   private sessionId: string | null = null;
   private shadowRoot: ShadowRoot | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private resizeTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private isInitialized = false;
+
+  // Data batching for performance optimization
+  private writeBuffer: string[] = [];
+  private flushScheduled = false;
 
   constructor(leaf: WorkspaceLeaf, plugin: IntegrationAIPlugin) {
     super(leaf);
@@ -206,6 +213,16 @@ export class TerminalView extends ItemView {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
+
+    // Clear resize timeout
+    if (this.resizeTimeoutId) {
+      clearTimeout(this.resizeTimeoutId);
+      this.resizeTimeoutId = null;
+    }
+
+    // Clear write buffer
+    this.writeBuffer = [];
+    this.flushScheduled = false;
 
     // Destroy PTY
     if (this.sessionId) {
@@ -305,6 +322,11 @@ export class TerminalView extends ItemView {
     // Open terminal in container
     this.terminal.open(terminalContainer);
 
+    // WebGL renderer disabled - causes rendering issues in Obsidian's Shadow DOM
+    // TODO: Investigate WebGL compatibility with Shadow DOM
+    // The canvas renderer provides sufficient performance with data batching
+    console.log("[TerminalView] Using canvas renderer");
+
     // Initial fit
     this.fitAddon.fit();
 
@@ -336,8 +358,8 @@ export class TerminalView extends ItemView {
     // Get shell
     const shell = this.plugin.settings.terminalShell || getDefaultShell();
 
-    // Get environment variables from plugin
-    const pluginEnv = this.plugin.getEnvironmentVariables();
+    // Get environment variables from plugin (MCP config + shell config)
+    const pluginEnv = await this.plugin.getEnvironmentVariables();
 
     // Create PTY
     const pty = ptyManager.createPTY(
@@ -351,8 +373,8 @@ export class TerminalView extends ItemView {
       },
       {
         onData: (data) => {
-          // PTY → Terminal
-          this.terminal?.write(data);
+          // PTY → Terminal (batched for performance)
+          this.handlePTYData(data);
         },
         onExit: (exitCode, signal) => {
           console.log(
@@ -402,11 +424,49 @@ export class TerminalView extends ItemView {
   }
 
   private setupResizeHandler(container: HTMLElement): void {
-    // Use ResizeObserver for container size changes
+    // Use ResizeObserver for container size changes with debouncing
     this.resizeObserver = new ResizeObserver(() => {
-      this.fitTerminal();
+      if (this.resizeTimeoutId) {
+        clearTimeout(this.resizeTimeoutId);
+      }
+      this.resizeTimeoutId = setTimeout(() => {
+        this.fitTerminal();
+        this.resizeTimeoutId = null;
+      }, 100);
     });
     this.resizeObserver.observe(container);
+  }
+
+  /**
+   * Handle PTY data with batching for performance optimization.
+   * Multiple data chunks are collected and flushed together
+   * using requestAnimationFrame to reduce rendering overhead.
+   */
+  private handlePTYData(data: string): void {
+    this.writeBuffer.push(data);
+    if (!this.flushScheduled) {
+      this.flushScheduled = true;
+      // Use requestAnimationFrame for batching, with fallback
+      if (typeof requestAnimationFrame !== "undefined") {
+        requestAnimationFrame(() => this.flushBuffer());
+      } else {
+        setTimeout(() => this.flushBuffer(), 16);
+      }
+    }
+  }
+
+  /**
+   * Flush the write buffer to the terminal.
+   * Combines all buffered data into a single write operation.
+   */
+  private flushBuffer(): void {
+    this.flushScheduled = false;
+    if (!this.terminal || this.writeBuffer.length === 0) {
+      return;
+    }
+    const data = this.writeBuffer.join("");
+    this.writeBuffer = [];
+    this.terminal.write(data);
   }
 
   private fitTerminal(): void {

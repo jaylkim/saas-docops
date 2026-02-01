@@ -1,0 +1,313 @@
+/**
+ * Git State - 반응형 상태 관리
+ */
+
+import { GitService } from "./git-service";
+import { GitStatus, GitBranch, GitViewState, GitOperationResult } from "./git-types";
+
+type StateListener = (state: GitViewState) => void;
+
+export class GitState {
+  private service: GitService;
+  private listeners: Set<StateListener> = new Set();
+  private refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+  private state: GitViewState = {
+    loading: true,
+    error: null,
+    status: null,
+    branches: [],
+    selectedFiles: new Set(),
+    commitMessage: "",
+    activePanel: "status",
+  };
+
+  constructor(repoPath: string) {
+    this.service = new GitService(repoPath);
+  }
+
+  /**
+   * 상태 리스너 등록
+   */
+  subscribe(listener: StateListener): () => void {
+    this.listeners.add(listener);
+    // 즉시 현재 상태 전달
+    listener(this.state);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  /**
+   * 상태 업데이트 및 리스너 알림
+   */
+  private setState(partial: Partial<GitViewState>): void {
+    this.state = { ...this.state, ...partial };
+    this.notifyListeners();
+  }
+
+  private notifyListeners(): void {
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
+  }
+
+  /**
+   * 현재 상태 조회
+   */
+  getState(): GitViewState {
+    return this.state;
+  }
+
+  /**
+   * GitService 접근
+   */
+  getService(): GitService {
+    return this.service;
+  }
+
+  // ===== 상태 업데이트 =====
+
+  /**
+   * Git 상태 새로고침
+   */
+  async refresh(): Promise<void> {
+    this.setState({ loading: true, error: null });
+
+    try {
+      const [status, branches] = await Promise.all([
+        this.service.getStatus(),
+        this.service.getBranches(),
+      ]);
+
+      this.setState({
+        loading: false,
+        status,
+        branches,
+        error: status.isRepo ? null : "Git 저장소가 아닙니다",
+      });
+    } catch (error) {
+      this.setState({
+        loading: false,
+        error: error instanceof Error ? error.message : "상태 조회 실패",
+      });
+    }
+  }
+
+  /**
+   * 자동 새로고침 시작
+   */
+  startAutoRefresh(intervalMs = 30000): void {
+    this.stopAutoRefresh();
+    this.refreshTimer = setInterval(() => this.refresh(), intervalMs);
+  }
+
+  /**
+   * 자동 새로고침 중지
+   */
+  stopAutoRefresh(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  // ===== 파일 선택 =====
+
+  /**
+   * 파일 선택 토글
+   */
+  toggleFileSelection(filePath: string): void {
+    const newSelection = new Set(this.state.selectedFiles);
+    if (newSelection.has(filePath)) {
+      newSelection.delete(filePath);
+    } else {
+      newSelection.add(filePath);
+    }
+    this.setState({ selectedFiles: newSelection });
+  }
+
+  /**
+   * 모든 파일 선택
+   */
+  selectAllFiles(): void {
+    if (!this.state.status) return;
+    const allPaths = this.state.status.files.map((f) => f.path);
+    this.setState({ selectedFiles: new Set(allPaths) });
+  }
+
+  /**
+   * 모든 파일 선택 해제
+   */
+  clearSelection(): void {
+    this.setState({ selectedFiles: new Set() });
+  }
+
+  // ===== 커밋 메시지 =====
+
+  /**
+   * 커밋 메시지 업데이트
+   */
+  setCommitMessage(message: string): void {
+    this.setState({ commitMessage: message });
+  }
+
+  /**
+   * 커밋 메시지 초기화
+   */
+  clearCommitMessage(): void {
+    this.setState({ commitMessage: "" });
+  }
+
+  // ===== 패널 전환 =====
+
+  /**
+   * 활성 패널 변경
+   */
+  setActivePanel(panel: GitViewState["activePanel"]): void {
+    this.setState({ activePanel: panel });
+  }
+
+  // ===== Git 작업 =====
+
+  /**
+   * Pull 실행
+   */
+  async pull(): Promise<GitOperationResult> {
+    this.setState({ loading: true });
+    const result = await this.service.pull();
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * Push 실행
+   */
+  async push(): Promise<GitOperationResult> {
+    this.setState({ loading: true });
+    const result = await this.service.push();
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 선택한 파일 Stage
+   */
+  async stageSelected(): Promise<GitOperationResult> {
+    const files = Array.from(this.state.selectedFiles);
+    if (files.length === 0) {
+      return { success: false, message: "선택된 파일이 없습니다" };
+    }
+
+    const result = await this.service.stageFiles(files);
+    if (result.success) {
+      this.clearSelection();
+    }
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 모든 파일 Stage
+   */
+  async stageAll(): Promise<GitOperationResult> {
+    const result = await this.service.stageAll();
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 커밋 실행
+   */
+  async commit(): Promise<GitOperationResult> {
+    const result = await this.service.commit(this.state.commitMessage);
+    if (result.success) {
+      this.clearCommitMessage();
+    }
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 커밋 & 푸시
+   */
+  async commitAndPush(): Promise<GitOperationResult> {
+    const result = await this.service.commitAndPush(this.state.commitMessage);
+    if (result.success) {
+      this.clearCommitMessage();
+    }
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 브랜치 생성
+   */
+  async createBranch(name: string, fromMain = true): Promise<GitOperationResult> {
+    const result = await this.service.createBranch(name, fromMain);
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * 브랜치 전환
+   */
+  async switchBranch(name: string): Promise<GitOperationResult> {
+    const result = await this.service.switchBranch(name);
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * PR 링크 생성
+   */
+  async generatePRLink() {
+    return this.service.generatePRLink();
+  }
+
+  /**
+   * 충돌 해결
+   */
+  async resolveConflict(
+    file: string,
+    resolution: "ours" | "theirs"
+  ): Promise<GitOperationResult> {
+    const result = await this.service.resolveConflict(file, resolution);
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * Git 저장소 초기화
+   */
+  async init(): Promise<GitOperationResult> {
+    const result = await this.service.init();
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * .gitignore 생성 또는 업데이트
+   */
+  async createOrUpdateGitignore(): Promise<GitOperationResult> {
+    const result = await this.service.createOrUpdateGitignore();
+    await this.refresh();
+    return result;
+  }
+
+  /**
+   * .gitignore 존재 여부
+   */
+  hasGitignore(): boolean {
+    return this.service.hasGitignore();
+  }
+
+  /**
+   * 리소스 정리
+   */
+  destroy(): void {
+    this.stopAutoRefresh();
+    this.listeners.clear();
+  }
+}

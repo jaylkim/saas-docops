@@ -4,17 +4,19 @@
 
 // View Types
 export const TERMINAL_VIEW_TYPE = "integration-terminal-view";
+export const GIT_VIEW_TYPE = "integration-git-view";
 
 // Plugin Info
 export const PLUGIN_ID = "saas-docops";
 export const PLUGIN_NAME = "SaaS DocOps";
 
+// MCP Config Level Type
+export type MCPConfigLevel = "user" | "project";
+
 // Default Settings
 export const DEFAULT_SETTINGS = {
-  // API Keys (터미널에서 환경변수로 주입)
-  anthropicApiKey: "",
-  slackBotToken: "",
-  atlassianApiToken: "",
+  // Wizard State
+  wizardCompleted: false,
 
   // Terminal Settings
   terminalShell: "",
@@ -22,15 +24,18 @@ export const DEFAULT_SETTINGS = {
   terminalFontFamily: "monospace",
 
   // MCP Settings
+  mcpConfigLevel: "user" as MCPConfigLevel, // "user" = ~/.claude.json, "project" = vault/.mcp.json
   mcpServers: {} as Record<string, MCPServerConfig>,
 };
 
 // MCP Server Config Type
 export interface MCPServerConfig {
-  command: string;
+  type: "stdio" | "http" | "sse";
+  command?: string;
   args?: string[];
   env?: Record<string, string>;
-  enabled: boolean;
+  url?: string;
+  headers?: Record<string, string>;
 }
 
 // Plugin Settings Type
@@ -43,4 +48,5 @@ export const ICONS = {
   sync: "refresh-cw",
   slack: "send",
   confluence: "file-text",
+  git: "users",
 } as const;

@@ -31,6 +31,9 @@ const customPlugin = {
   },
 };
 
+// Add node: prefixed builtins for simple-git
+const nodeBuiltins = builtins.map(m => `node:${m}`);
+
 const context = await esbuild.context({
   entryPoints: ["src/main.ts"],
   bundle: true,
@@ -50,6 +53,7 @@ const context = await esbuild.context({
     "@lezer/highlight",
     "@lezer/lr",
     ...builtins,
+    ...nodeBuiltins,
   ],
   format: "cjs",
   target: "es2018",

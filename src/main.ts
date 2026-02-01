@@ -1,12 +1,18 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import {
   TERMINAL_VIEW_TYPE,
+  GIT_VIEW_TYPE,
   DEFAULT_SETTINGS,
   ICONS,
   type IntegrationSettings,
 } from "./constants";
 import { TerminalView, initElectronBridge } from "./terminal";
 import { IntegrationSettingsTab } from "./settings/settings-tab";
+import { SetupWizardModal, EnvironmentChecker } from "./wizard";
+import { GitView } from "./git";
+
+// Import styles (injected via esbuild)
+import "./styles.css";
 
 /**
  * SaaS DocOps Plugin
@@ -36,10 +42,15 @@ export default class IntegrationAIPlugin extends Plugin {
 
     // 3. View 등록
     this.registerView(TERMINAL_VIEW_TYPE, (leaf) => new TerminalView(leaf, this));
+    this.registerView(GIT_VIEW_TYPE, (leaf) => new GitView(leaf, this));
 
     // 4. 리본 아이콘 추가
     this.addRibbonIcon(ICONS.terminal, "터미널 열기", () => {
       this.activateView(TERMINAL_VIEW_TYPE);
+    });
+
+    this.addRibbonIcon(ICONS.git, "협업 (Git)", () => {
+      this.activateView(GIT_VIEW_TYPE);
     });
 
     // 5. 명령어 등록
@@ -49,8 +60,22 @@ export default class IntegrationAIPlugin extends Plugin {
       callback: () => this.activateView(TERMINAL_VIEW_TYPE),
     });
 
+    this.addCommand({
+      id: "open-git",
+      name: "협업 (Git) 열기",
+      callback: () => this.activateView(GIT_VIEW_TYPE),
+    });
+
     // 6. 설정 탭 추가
     this.addSettingTab(new IntegrationSettingsTab(this.app, this));
+
+    // 7. 첫 실행 시 설정 마법사 표시
+    if (!this.settings.wizardCompleted) {
+      // 약간의 지연 후 마법사 열기 (UI가 완전히 로드된 후)
+      setTimeout(() => {
+        new SetupWizardModal(this.app, this).open();
+      }, 500);
+    }
 
     console.log("SaaS DocOps loaded successfully!");
   }
@@ -92,22 +117,54 @@ export default class IntegrationAIPlugin extends Plugin {
 
   /**
    * 환경변수 가져오기 (터미널 프로세스용)
+   *
+   * 우선순위 (낮은 것이 높은 것을 override):
+   * 1. MCP config의 env 필드 (user level: ~/.claude.json)
+   * 2. MCP config의 env 필드 (project level: .mcp.json)
+   * 3. Shell config (~/.zshrc 등)
    */
-  getEnvironmentVariables(): Record<string, string> {
+  async getEnvironmentVariables(): Promise<Record<string, string>> {
     const env: Record<string, string> = {};
+    const vaultPath = (this.app.vault.adapter as { basePath?: string }).basePath;
 
-    if (this.settings.anthropicApiKey) {
-      env.ANTHROPIC_API_KEY = this.settings.anthropicApiKey;
+    // 1. Read env vars from MCP config (user level first)
+    const userChecker = new EnvironmentChecker();
+    userChecker.setConfigLevel("user");
+    const userServers = await userChecker.getAllMCPServers();
+
+    for (const server of Object.values(userServers)) {
+      if (server.env) {
+        Object.assign(env, server.env);
+      }
     }
 
-    if (this.settings.slackBotToken) {
-      env.SLACK_BOT_TOKEN = this.settings.slackBotToken;
+    // 2. Project level overrides user level
+    if (vaultPath) {
+      const projectChecker = new EnvironmentChecker();
+      projectChecker.setConfigLevel("project", vaultPath);
+      const projectServers = await projectChecker.getAllMCPServers();
+
+      for (const server of Object.values(projectServers)) {
+        if (server.env) {
+          Object.assign(env, server.env);
+        }
+      }
     }
 
-    if (this.settings.atlassianApiToken) {
-      env.ATLASSIAN_API_TOKEN = this.settings.atlassianApiToken;
+    // 3. Read ANTHROPIC_API_KEY from shell config (highest priority)
+    const checker = new EnvironmentChecker();
+    const apiKeyInfo = await checker.checkAnthropicApiKey();
+    if (apiKeyInfo.found && apiKeyInfo.value) {
+      env.ANTHROPIC_API_KEY = apiKeyInfo.value;
     }
 
     return env;
+  }
+
+  /**
+   * 설정 마법사 열기
+   */
+  openSetupWizard(): void {
+    new SetupWizardModal(this.app, this).open();
   }
 }
