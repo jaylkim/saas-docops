@@ -67,6 +67,13 @@ export class GitState {
     return this.service;
   }
 
+  /**
+   * 저장소 경로 반환
+   */
+  getRepoPath(): string {
+    return this.service.getRepoPath();
+  }
+
   // ===== 상태 업데이트 =====
 
   /**
@@ -310,6 +317,14 @@ export class GitState {
     const result = await this.service.addRemote(url, name);
     await this.refresh();
     return result;
+  }
+
+  /**
+   * Git diff 가져오기 (AI 커밋 메시지 생성용)
+   * @param files 특정 파일들만 diff할 경우 파일 경로 배열
+   */
+  async getDiff(files?: string[]): Promise<{ diff: string; hasStagedChanges: boolean }> {
+    return this.service.getDiff(files);
   }
 
   /**

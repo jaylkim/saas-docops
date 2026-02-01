@@ -108,6 +108,7 @@ src/settings/
   - [x] 파일 목록 단순화 ("Changed Files" unified view)
   - [x] Smart Sync Panel (컨텍스트 기반 "Save & Upload" 버튼)
   - [x] Git 용어 순화 (Commit -> Save Version, Push -> Upload)
+  - [x] **AI 커밋 메시지 생성** (`claude -p`로 diff 분석 → 한국어 메시지)
 - [x] **배포 스크립트 고도화**
   - [x] `install.sh` 프로덕션 레벨 리팩토링 (set -euo, Homebrew 지원, 안전한 JSON 핸들링)
   - [x] 백업 및 복원 로직 추가
@@ -332,4 +333,25 @@ npm run deploy:test
     - `git-service.ts`: `push()` 시 upstream 없으면 `-u origin <branch>` 자동 적용
     - `sync-panel.ts`: "클라우드에 첫 업로드" 버튼 추가
   - **UI 개선**: 동기화 버튼 `max-width` 제한 해제, 아이콘+텍스트 가로 배열
+
+### 세션 12 (2025-02-01)
+- **AI 커밋 메시지 생성 기능**:
+  - **구현 방식**: `claude -p` 명령어로 git diff 분석 → 한국어 커밋 메시지 생성
+  - **UI 개선**:
+    - "AI 생성" 버튼을 라벨 옆(textarea 위)에 배치
+    - 커밋 메시지 입력을 `input` → `textarea`로 변경 (멀티라인 지원)
+    - 파일 미선택 시 폼 전체 비활성화 + "(파일을 선택하세요)" 힌트
+    - 이모지 제거 (디자인 가이드라인 준수)
+  - **수정 파일**:
+    - `git-service.ts`: `getDiff(files?)`, `getRepoPath()` 메서드 추가
+    - `git-state.ts`: `getDiff()`, `getRepoPath()` wrapper 추가
+    - `commit-form.ts`: AI 버튼 + `generateAICommitMessage()` 함수
+    - `styles.css`: `.git-ai-chip`, `.git-commit-label-row` 스타일
+    - `environment-checker.ts`: `getExtendedPath()` export
+  - **기술 사항**:
+    - 선택된 파일에 대해서만 diff 분석
+    - cwd 설정으로 CLAUDE.md/스킬 자동 활용
+    - stdin으로 프롬프트 전달 (shell escape 문제 회피)
+    - diff 크기 4000자 제한, 30초 타임아웃
+    - 에러 핸들링 (변경사항 없음, Claude 미설치, 생성 실패, 빈 응답)
 

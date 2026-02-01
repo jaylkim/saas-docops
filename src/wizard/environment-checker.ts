@@ -67,7 +67,7 @@ export type MCPConfigLevel = "user" | "project";
 /**
  * Get extended PATH for command execution
  */
-function getExtendedPath(): string {
+export function getExtendedPath(): string {
   const os = require("os");
   const homeDir = os.homedir();
   const platform = process.platform;

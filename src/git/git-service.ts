@@ -29,6 +29,13 @@ export class GitService {
   }
 
   /**
+   * 저장소 경로 반환
+   */
+  getRepoPath(): string {
+    return this.repoPath;
+  }
+
+  /**
    * Git 저장소 여부 확인
    */
   async isGitRepo(): Promise<boolean> {
@@ -969,6 +976,30 @@ npm-debug.log*
         message: "임시 보관 복원 실패",
         error: error instanceof Error ? error.message : String(error),
       };
+    }
+  }
+
+  /**
+   * Git diff 가져오기 (AI 커밋 메시지 생성용)
+   * @param files 특정 파일들만 diff할 경우 파일 경로 배열
+   */
+  async getDiff(files?: string[]): Promise<{ diff: string; hasStagedChanges: boolean }> {
+    try {
+      const status = await this.git.status();
+      const hasStagedChanges = status.staged.length > 0;
+
+      const args: string[] = [];
+      if (hasStagedChanges) {
+        args.push("--cached");
+      }
+      if (files && files.length > 0) {
+        args.push("--", ...files);
+      }
+
+      const diff = await this.git.diff(args);
+      return { diff, hasStagedChanges };
+    } catch {
+      return { diff: "", hasStagedChanges: false };
     }
   }
 

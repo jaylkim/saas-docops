@@ -2316,9 +2316,21 @@
   gap: 10px;
 }
 
+.git-commit-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
 .git-commit-label {
   font-size: 14px;
   font-weight: 500;
+}
+
+.git-commit-hint {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .git-commit-input-container {
@@ -2333,6 +2345,10 @@
   border-radius: 8px;
   background: var(--background-primary);
   font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.4;
 }
 
 .git-commit-input:focus {
@@ -2365,6 +2381,20 @@
 .git-suggestion-chip:hover {
   background: var(--background-modifier-hover);
   border-color: var(--interactive-accent);
+}
+
+.git-ai-chip {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  border-color: var(--interactive-accent);
+}
+
+.git-ai-chip:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+}
+
+.git-ai-chip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .git-commit-actions {
