@@ -4,8 +4,30 @@
 
 /* ===== Custom CSS Variables ===== */
 :root {
+  /* Typography Scale */
+  --saas-font-xs: 11px;
+  --saas-font-sm: 12px;
+  --saas-font-base: 13px;
+  --saas-font-md: 14px;
+  --saas-font-lg: 16px;
+  --saas-font-xl: 18px;
+
+  /* Color System */
   --saas-accent-blue: var(--text-accent, #0096ff);
   --saas-accent-purple: #8a2be2;
+
+  /* Semantic Status Colors */
+  --saas-success-bg: rgba(0, 200, 83, 0.1);
+  --saas-success-text: #00c853;
+  --saas-warning-bg: rgba(255, 193, 7, 0.1);
+  --saas-warning-text: #ffc107;
+  --saas-error-bg: rgba(255, 82, 82, 0.1);
+  --saas-error-text: #ff5252;
+
+  /* Animation Tokens */
+  --saas-transition-fast: 0.15s ease;
+  --saas-transition-medium: 0.25s ease;
+  --saas-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* ===== Settings Section ===== */
@@ -70,7 +92,7 @@
 }
 
 .wizard-progress-dot .dot-number {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   color: var(--text-muted);
 }
@@ -130,7 +152,7 @@
 }
 
 .wizard-step-indicator {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
 }
 
@@ -143,10 +165,10 @@
 .wizard-btn {
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -189,7 +211,7 @@
 
 .wizard-btn-sm {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
 }
 
 /* Welcome Step */
@@ -244,11 +266,11 @@
 }
 
 .setup-text strong {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .setup-text span {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -257,7 +279,7 @@
   background: var(--background-secondary);
   padding: 12px 14px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-top: 20px;
   line-height: 1.5;
 }
@@ -272,7 +294,7 @@
 
 .wizard-config-selection h4 {
   margin: 0 0 12px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
 }
 
@@ -291,7 +313,7 @@
   border: 2px solid var(--background-modifier-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   flex: 1;
   min-width: 160px;
 }
@@ -316,7 +338,7 @@
 }
 
 .option-label {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
 }
 
@@ -331,13 +353,13 @@
 
 .wizard-info-box h4 {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   color: var(--saas-accent-blue);
 }
 
 .wizard-info-box p {
   margin: 0 0 8px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   line-height: 1.5;
 }
 
@@ -347,7 +369,7 @@
 }
 
 .wizard-info-box li {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 4px;
 }
 
@@ -357,7 +379,7 @@
   background: var(--background-primary);
   border-radius: 4px;
   font-family: var(--font-monospace);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin: 4px 0;
 }
 
@@ -371,7 +393,7 @@
 
 .wizard-note-box p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   line-height: 1.5;
 }
 
@@ -380,7 +402,7 @@
   background: var(--background-primary);
   border-radius: 4px;
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
 }
 
 /* Code block in guide */
@@ -393,7 +415,7 @@
 
 .guide-code-block code {
   font-family: var(--font-monospace);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 /* Environment Check */
@@ -445,11 +467,11 @@
 }
 
 .env-title-row strong {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .env-version {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   background: var(--background-primary);
   padding: 2px 6px;
@@ -457,7 +479,7 @@
 }
 
 .env-message {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -476,7 +498,7 @@
 }
 
 .env-cmd-display code {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-family: var(--font-monospace);
 }
 
@@ -487,18 +509,18 @@
 }
 
 .wizard-env-summary.summary-success {
-  background: rgba(0, 200, 83, 0.1);
+  background: var(--saas-success-bg);
   border: 1px solid var(--color-green, #00c853);
 }
 
 .wizard-env-summary.summary-warning {
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border: 1px solid var(--color-yellow, #ffc107);
 }
 
 .wizard-env-summary p {
   margin: 0 0 4px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .summary-hint {
@@ -525,12 +547,12 @@
 }
 
 .wizard-status-box.status-success {
-  background: rgba(0, 200, 83, 0.1);
+  background: var(--saas-success-bg);
   border: 1px solid var(--color-green, #00c853);
 }
 
 .wizard-status-box.status-warning {
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border: 1px solid var(--color-yellow, #ffc107);
 }
 
@@ -546,7 +568,7 @@
 
 .status-content p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .status-hint {
@@ -568,11 +590,11 @@
 
 .wizard-login-option h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .option-desc {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   margin: 0 0 12px 0;
 }
@@ -600,13 +622,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .step-text {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   line-height: 22px;
 }
 
@@ -617,7 +639,7 @@
 
 .wizard-input-group label {
   display: block;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -628,7 +650,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
   background: var(--background-primary);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-family: inherit;
 }
 
@@ -638,7 +660,7 @@
 }
 
 .wizard-hint {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin: 4px 0 0 0;
 }
@@ -654,7 +676,7 @@
 
 .wizard-setup-guide>h4 {
   margin: 0 0 12px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-guide-step {
@@ -685,13 +707,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 600;
 }
 
 .guide-step-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .guide-step-content {
@@ -700,7 +722,7 @@
 
 .guide-step-content p {
   margin: 0 0 10px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .guide-step-content ol {
@@ -709,7 +731,7 @@
 }
 
 .guide-step-content li {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 4px;
 }
 
@@ -737,7 +759,7 @@
 }
 
 .scope-item code {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 3px 8px;
   background: var(--background-primary);
   border-radius: 4px;
@@ -753,7 +775,7 @@
 }
 
 .save-status {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .save-status.success {
@@ -771,14 +793,14 @@
 
 .wizard-ssh-key-section h4 {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-ssh-key-textarea {
   width: 100%;
   padding: 10px;
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -793,7 +815,7 @@
 }
 
 .generate-status {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .generate-status.success {
@@ -813,7 +835,7 @@
 
 .wizard-cmd-display code {
   font-family: var(--font-monospace);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 /* Complete Step */
@@ -853,7 +875,7 @@
   padding: 8px 12px;
   background: var(--background-secondary);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .summary-item.status-success .summary-value {
@@ -879,7 +901,7 @@
 
 .wizard-tips h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-tips ul {
@@ -888,7 +910,7 @@
 }
 
 .wizard-tips li {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 4px;
 }
 
@@ -901,7 +923,7 @@
 
 /* Section titles */
 .mcp-section-title {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
   margin: 16px 0 12px 0;
   color: var(--text-muted);
@@ -918,7 +940,7 @@
 .mcp-empty-message {
   color: var(--text-muted);
   font-style: italic;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   padding: 12px 0;
 }
 
@@ -947,16 +969,16 @@
 }
 
 .mcp-server-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .mcp-server-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .mcp-status-badge {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
@@ -974,7 +996,7 @@
 
 .mcp-server-cmd,
 .mcp-server-url {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   font-family: var(--font-monospace);
   display: block;
@@ -1015,7 +1037,7 @@
 }
 
 .mcp-oauth-hint {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
 }
 
@@ -1046,7 +1068,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
 }
 
 .mcp-preset-card:hover {
@@ -1060,7 +1082,7 @@
 }
 
 .mcp-preset-name {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 500;
   text-align: center;
 }
@@ -1090,10 +1112,10 @@
 .mcp-btn {
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -1125,7 +1147,7 @@
 
 .mcp-btn-sm {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
 }
 
 .mcp-btn-icon {
@@ -1133,9 +1155,9 @@
   border: none;
   padding: 4px 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   border-radius: 4px;
-  transition: background 0.15s ease;
+  transition: background var(--saas-transition-fast);
 }
 
 .mcp-btn-icon:hover {
@@ -1148,10 +1170,10 @@
 
 /* MCP notice */
 .mcp-notice {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   padding: 10px 12px;
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border-radius: 6px;
   margin-top: 12px;
 }
@@ -1168,7 +1190,7 @@
 
 .mcp-modal-desc {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin: 0 0 16px 0;
 }
 
@@ -1177,7 +1199,7 @@
 }
 
 .mcp-modal-section h4 {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 600;
   margin: 0 0 10px 0;
   color: var(--text-muted);
@@ -1211,7 +1233,7 @@
 
 .mcp-env-key {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 500;
   min-width: 140px;
 }
@@ -1222,7 +1244,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   background: var(--background-primary);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .mcp-env-input:focus {
@@ -1241,13 +1263,13 @@
 
 .mcp-modal-info h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   color: var(--saas-accent-blue);
 }
 
 .mcp-modal-info p {
   margin: 0 0 8px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .mcp-modal-info ul {
@@ -1256,7 +1278,7 @@
 }
 
 .mcp-modal-info li {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 4px;
 }
 
@@ -1266,14 +1288,14 @@
   padding: 10px 12px;
   background: var(--background-primary);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-family: var(--font-monospace);
   word-break: break-all;
 }
 
 /* MCP modal hint */
 .mcp-modal-hint {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin: 0 0 10px 0;
 }
@@ -1297,7 +1319,7 @@
 
 .mcp-header-key {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 500;
   min-width: 120px;
 }
@@ -1308,7 +1330,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   background: var(--background-primary);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .mcp-header-input:focus {
@@ -1345,7 +1367,7 @@
 
 .api-key-masked {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   padding: 3px 8px;
   background: var(--background-primary);
   border-radius: 4px;
@@ -1361,7 +1383,7 @@
 }
 
 .api-key-source-path {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -1378,7 +1400,7 @@
 
 .api-key-help p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -1391,7 +1413,7 @@
 
 .wizard-token-type-section h4 {
   margin: 0 0 12px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-token-type-options {
@@ -1406,7 +1428,7 @@
   border: 2px solid var(--background-modifier-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
 }
 
 .wizard-token-option:hover {
@@ -1420,12 +1442,12 @@
 
 .wizard-token-option strong {
   display: block;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 4px;
 }
 
 .wizard-token-option span {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
 }
 
@@ -1440,7 +1462,7 @@
 
 .mcp-config-note p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   line-height: 1.5;
 }
 
@@ -1466,7 +1488,7 @@
   border: 2px solid var(--background-modifier-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
 }
 
 .wizard-config-option:hover {
@@ -1488,18 +1510,18 @@
 }
 
 .wizard-config-option label strong {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-config-option label span {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
 .wizard-config-desc {
   width: 100%;
   margin: 8px 0 0 24px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -1510,13 +1532,13 @@
 
 .wizard-comparison h4 {
   margin: 0 0 12px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .wizard-comparison-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .wizard-comparison-table th,
@@ -1529,7 +1551,7 @@
 .wizard-comparison-table th {
   background: var(--background-secondary);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -1548,7 +1570,7 @@
 }
 
 .wizard-server-list-title {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 600;
   margin: 0 0 10px 0;
   color: var(--text-muted);
@@ -1575,12 +1597,12 @@
 
 .wizard-server-name {
   font-weight: 500;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .wizard-server-token {
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   padding: 2px 6px;
   background: var(--background-primary);
@@ -1621,7 +1643,7 @@
 
 /* Health status badge */
 .mcp-health-badge {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
@@ -1673,7 +1695,7 @@
 }
 
 .mcp-health-error-text {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--color-red, #ff5252);
 }
 
@@ -1767,13 +1789,13 @@
 }
 
 .vault-manager-current-badge {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   font-weight: normal;
 }
 
 .vault-manager-path {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1785,7 +1807,7 @@
 }
 
 .vault-manager-version {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 2px 8px;
   border-radius: 4px;
   background: rgba(var(--interactive-accent-rgb, 0, 150, 255), 0.1);
@@ -1801,7 +1823,7 @@
 }
 
 .vault-manager-current-text {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   font-style: italic;
 }
@@ -1833,7 +1855,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .git-view-icon {
@@ -1856,7 +1878,7 @@
   cursor: pointer;
   color: var(--text-muted);
   transition: all 0.2s ease;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   height: 32px;
 }
 
@@ -1910,7 +1932,7 @@
   padding: 8px 16px;
   cursor: pointer;
   position: relative;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   border-radius: 6px 6px 0 0;
   background: transparent;
   min-width: 100px;
@@ -1949,7 +1971,7 @@
 }
 
 .git-tab-label {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1986,7 +2008,7 @@
 
 .git-content-description {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -2003,14 +2025,14 @@
 }
 
 .git-section-header {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 10px;
 }
 
 .git-section-label {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 8px;
@@ -2035,7 +2057,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: rgba(255, 82, 82, 0.1);
+  background: var(--saas-error-bg);
   border: 1px solid var(--color-red, #ff5252);
   border-radius: 8px;
 }
@@ -2046,7 +2068,7 @@
 
 .git-error-text {
   color: var(--color-red, #ff5252);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .git-branch-box {
@@ -2070,13 +2092,13 @@
 }
 
 .git-branch-label {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
 .git-branch-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .git-badge {
@@ -2098,17 +2120,17 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border: 1px solid var(--color-yellow, #ffc107);
   border-radius: 8px;
 }
 
 .git-warning-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .git-warning-text {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-normal);
 }
 
@@ -2124,7 +2146,7 @@
 }
 
 .git-info-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
   flex-shrink: 0;
 }
 
@@ -2139,13 +2161,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   padding: 6px 10px;
   border-radius: 6px;
 }
 
 .git-sync-behind {
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   color: var(--color-yellow, #ffc107);
 }
 
@@ -2155,12 +2177,12 @@
 }
 
 .git-sync-uptodate {
-  background: rgba(0, 200, 83, 0.1);
+  background: var(--saas-success-bg);
   color: var(--color-green, #00c853);
 }
 
 .git-sync-icon {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 /* File Summary */
@@ -2172,11 +2194,11 @@
 
 .git-no-changes {
   color: var(--color-green, #00c853);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .git-changes-count {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -2188,7 +2210,7 @@
 }
 
 .git-detail-item {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   padding: 2px 8px;
   border-radius: 4px;
   background: var(--background-primary);
@@ -2233,7 +2255,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   min-width: 90px;
 }
 
@@ -2263,7 +2285,7 @@
 }
 
 .git-action-label {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 500;
 }
 
@@ -2300,7 +2322,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   padding: 8px 12px;
   background: var(--background-secondary);
@@ -2313,11 +2335,11 @@
 
 .git-remote-url {
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
 }
 
 .git-no-remote {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   padding: 8px 12px;
   background: var(--background-secondary);
@@ -2339,7 +2361,7 @@
 }
 
 .git-file-list-title {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
 }
 
@@ -2350,7 +2372,7 @@
 
 .git-no-files {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   padding: 16px;
   text-align: center;
 }
@@ -2360,7 +2382,7 @@
 }
 
 .git-section-title {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 6px;
@@ -2392,7 +2414,7 @@
 }
 
 .git-file-icon {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   flex-shrink: 0;
 }
 
@@ -2405,7 +2427,7 @@
 }
 
 .git-file-name {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -2413,7 +2435,7 @@
 }
 
 .git-file-path {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -2421,10 +2443,15 @@
 }
 
 .git-file-status {
-  font-size: 10px;
+  font-size: var(--saas-font-xs);
   padding: 2px 8px;
   border-radius: 4px;
   flex-shrink: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .git-status-modified {
@@ -2463,7 +2490,7 @@
 }
 
 .git-commit-label {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 500;
 }
 
@@ -2483,7 +2510,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-family: inherit;
   resize: vertical;
   min-height: 60px;
@@ -2503,7 +2530,7 @@
 }
 
 .git-suggestions-label {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -2512,7 +2539,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 12px;
   background: var(--background-secondary);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   cursor: pointer;
   transition: all 0.1s ease;
 }
@@ -2523,12 +2550,19 @@
 }
 
 .git-ai-chip {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-  border-color: var(--interactive-accent);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  /* Force border color */
+  color: var(--saas-accent-purple);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+  transition: all var(--saas-transition-fast);
 }
 
 .git-ai-chip:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+  border-color: var(--saas-accent-purple) !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+  transform: translateY(-1px);
 }
 
 .git-ai-chip:disabled {
@@ -2546,10 +2580,10 @@
 .git-btn {
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -2581,7 +2615,7 @@
 
 .git-btn-sm {
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
 }
 
 .git-btn-large {
@@ -2590,7 +2624,7 @@
 }
 
 .git-btn-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 /* Workspace Panel */
@@ -2638,7 +2672,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .git-workspace-input:focus {
@@ -2672,7 +2706,7 @@
 }
 
 .git-workspace-item-name {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 /* Help Box */
@@ -2685,13 +2719,13 @@
 }
 
 .git-help-title {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 600;
   margin-bottom: 6px;
 }
 
 .git-help-text {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -2729,7 +2763,7 @@
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .git-summary-label {
@@ -2741,7 +2775,7 @@
 }
 
 .git-review-guide {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -2761,7 +2795,7 @@
 }
 
 .git-pr-link-title {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
   margin-bottom: 10px;
 }
@@ -2776,7 +2810,7 @@
 .git-pr-detail-row {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
 }
 
 .git-pr-detail-label {
@@ -2785,7 +2819,7 @@
 
 .git-pr-detail-value {
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
 }
 
 /* Conflict Panel */
@@ -2800,9 +2834,9 @@
   align-items: center;
   gap: 10px;
   padding: 16px;
-  background: rgba(0, 200, 83, 0.1);
+  background: var(--saas-success-bg);
   border-radius: 8px;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   color: var(--color-green, #00c853);
 }
 
@@ -2815,7 +2849,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  background: rgba(255, 82, 82, 0.1);
+  background: var(--saas-error-bg);
   border: 1px solid var(--color-red, #ff5252);
   border-radius: 8px;
 }
@@ -2827,13 +2861,13 @@
 
 .git-conflict-message strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   margin-bottom: 4px;
 }
 
 .git-conflict-message p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -2861,16 +2895,16 @@
 }
 
 .git-conflict-file-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .git-conflict-file-name {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
 }
 
 .git-conflict-file-path {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
 }
 
@@ -2900,7 +2934,7 @@
 .git-conflict-finish {
   text-align: center;
   padding: 12px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
 }
 
@@ -2911,12 +2945,12 @@
 
 .git-confirm-modal h3 {
   margin: 0 0 12px 0;
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .git-confirm-modal p {
   margin: 0 0 16px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -2932,7 +2966,7 @@
   padding: 24px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 /* Git Init Panel */
@@ -2962,7 +2996,7 @@
 .git-init-desc {
   margin: 0;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .git-init-info {
@@ -2974,13 +3008,13 @@
 
 .git-init-info h4 {
   margin: 0 0 10px 0;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   color: var(--saas-accent-blue);
 }
 
 .git-init-info p {
   margin: 0 0 12px 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   line-height: 1.5;
 }
 
@@ -2990,7 +3024,7 @@
 }
 
 .git-init-benefits li {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin-bottom: 6px;
   color: var(--text-muted);
 }
@@ -3008,7 +3042,7 @@
 
 .git-init-note p {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -3019,7 +3053,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 10px 14px;
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border: 1px solid var(--color-yellow, #ffc107);
   border-radius: 8px;
 }
@@ -3032,7 +3066,7 @@
 }
 
 .git-gitignore-text {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-normal);
 }
 
@@ -3076,12 +3110,12 @@
 }
 
 .git-no-remote-title {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
 }
 
 .git-no-remote-hint {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
 }
 
@@ -3109,7 +3143,7 @@
 
 .git-modal-desc {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   margin: 0 0 16px 0;
 }
 
@@ -3121,7 +3155,7 @@
 }
 
 .git-remote-info-title {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 10px;
@@ -3140,7 +3174,7 @@
 }
 
 .git-remote-provider-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
   width: 20px;
   text-align: center;
   flex-shrink: 0;
@@ -3148,7 +3182,7 @@
 
 .git-remote-example code {
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   background: var(--background-primary);
   padding: 4px 8px;
@@ -3161,7 +3195,7 @@
 
 .git-remote-input-label {
   display: block;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   margin-bottom: 8px;
 }
@@ -3172,7 +3206,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-family: var(--font-monospace);
 }
 
@@ -3183,7 +3217,7 @@
 
 .git-remote-hint {
   margin: 8px 0 0 0;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -3386,7 +3420,7 @@
   }
 
   .wizard-progress-dot .dot-number {
-    font-size: 12px;
+    font-size: var(--saas-font-sm);
   }
 
   /* Welcome step config options */
@@ -3417,7 +3451,7 @@
   }
 
   .mcp-preset-name {
-    font-size: 11px;
+    font-size: var(--saas-font-xs);
   }
 
   /* Server list adjustments */
@@ -3455,7 +3489,7 @@
   }
 
   .git-tab-label {
-    font-size: 12px;
+    font-size: var(--saas-font-sm);
   }
 }
 
@@ -3479,12 +3513,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .update-version-badge {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   padding: 3px 8px;
   background: var(--background-secondary);
   border-radius: 4px;
@@ -3507,14 +3541,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 600;
   color: var(--saas-accent-blue);
   margin-bottom: 8px;
 }
 
 .update-release-date {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin-bottom: 12px;
 }
@@ -3524,7 +3558,7 @@
 }
 
 .update-cmd-label {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin: 0 0 6px 0;
 }
@@ -3542,7 +3576,7 @@
 .update-cmd-box code {
   flex: 1;
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   word-break: break-all;
 }
 
@@ -3553,7 +3587,7 @@
   cursor: pointer;
   border-radius: 4px;
   flex-shrink: 0;
-  transition: background 0.15s ease;
+  transition: background var(--saas-transition-fast);
 }
 
 .update-cmd-copy-btn:hover {
@@ -3565,7 +3599,7 @@
 }
 
 .update-link-section a {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-accent);
   text-decoration: none;
 }
@@ -3580,15 +3614,15 @@
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  background: rgba(0, 200, 83, 0.1);
+  background: var(--saas-success-bg);
   border: 1px solid rgba(0, 200, 83, 0.2);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--color-green, #00c853);
 }
 
 .update-uptodate-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 /* Error box */
@@ -3597,14 +3631,14 @@
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  background: rgba(255, 193, 7, 0.1);
+  background: var(--saas-warning-bg);
   border: 1px solid rgba(255, 193, 7, 0.2);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .update-error-icon {
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
   color: var(--color-yellow, #ffc107);
 }
 
@@ -3649,7 +3683,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--saas-font-lg);
 }
 
 .explorer-title-icon {
@@ -3667,10 +3701,10 @@
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 500;
   color: var(--text-muted);
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   white-space: nowrap;
 }
 
@@ -3713,7 +3747,7 @@
   gap: 8px;
   padding: 24px 16px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .explorer-error {
@@ -3787,7 +3821,7 @@
 /* Name */
 .explorer-name {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3822,7 +3856,7 @@
 
 .explorer-modal-location,
 .explorer-modal-current {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin: 0 0 12px 0;
   font-family: var(--font-monospace);
@@ -3837,7 +3871,7 @@
 
 .explorer-modal-label {
   display: block;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -3848,7 +3882,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .explorer-modal-input:focus {
@@ -3858,7 +3892,7 @@
 
 .explorer-modal-hint {
   margin: 8px 0 0 0;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
@@ -3867,7 +3901,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px 16px;
-  background: rgba(255, 82, 82, 0.1);
+  background: var(--saas-error-bg);
   border: 1px solid var(--color-red, #ff5252);
   border-radius: 8px;
   margin-bottom: 16px;
@@ -3881,19 +3915,19 @@
 
 .explorer-warning-text strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   color: var(--color-red, #ff5252);
   margin-bottom: 4px;
 }
 
 .explorer-warning-text p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-family: var(--font-monospace);
 }
 
 .explorer-modal-info {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   margin: 0 0 16px 0;
 }
@@ -3911,10 +3945,10 @@
 .explorer-btn {
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
   border: none;
 }
 
@@ -3986,7 +4020,7 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
 }
 
 .git-remote-action-btn:hover {
@@ -4024,7 +4058,7 @@
 
 .git-remote-current-url code {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   word-break: break-all;
 }
@@ -4057,7 +4091,7 @@
   border-radius: 8px;
   margin-top: 16px;
   margin-bottom: 4px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
 }
 
@@ -4133,11 +4167,11 @@
 .git-detached-title {
   font-weight: 600;
   color: var(--color-orange, #ff9800);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .git-detached-desc {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -4177,7 +4211,7 @@
   padding: 12px 14px;
   background: var(--background-secondary);
   border-radius: 0;
-  transition: background 0.15s ease;
+  transition: background var(--saas-transition-fast);
   flex-wrap: wrap;
   /* Allow details to wrap */
 }
@@ -4276,7 +4310,7 @@
 }
 
 .git-commit-message {
-  font-size: 14px;
+  font-size: var(--saas-font-md);
   font-weight: 500;
   color: var(--text-normal);
   word-break: break-word;
@@ -4286,7 +4320,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
   flex-wrap: wrap;
 }
@@ -4305,7 +4339,7 @@
 
 .git-commit-hash {
   font-family: var(--font-monospace);
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 2px 6px;
   background: var(--background-modifier-border);
   border-radius: 4px;
@@ -4316,7 +4350,7 @@
 .git-badge-current {
   background: var(--interactive-accent);
   color: white;
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
@@ -4342,19 +4376,19 @@
 .git-checkout-info p {
   margin: 0 0 8px 0;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--saas-font-md);
 }
 
 .git-checkout-commit {
   padding: 10px 14px;
   background: var(--background-secondary);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .git-checkout-commit code {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   padding: 2px 6px;
   background: var(--background-modifier-border);
   border-radius: 4px;
@@ -4362,7 +4396,7 @@
 }
 
 .git-checkout-warning {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-muted);
   margin: 16px 0 0 0;
   padding: 10px 14px;
@@ -4382,7 +4416,7 @@
 }
 
 .git-empty-hint {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   color: var(--text-faint);
   margin-top: 4px;
 }
@@ -4427,7 +4461,7 @@
 }
 
 .git-files-header {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 8px;
@@ -4445,16 +4479,18 @@
   gap: 8px;
   padding: 6px 8px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
 }
 
 .git-file-row:hover {
   background: var(--background-modifier-hover);
 }
 
-.git-file-status {
+.git-file-row .git-file-status {
   width: 16px;
   height: 16px;
+  padding: 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4493,7 +4529,7 @@
 .git-file-path {
   color: var(--text-normal);
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4505,7 +4541,7 @@
   align-items: center;
   gap: 8px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   padding: 8px 0;
 }
 
@@ -4540,7 +4576,7 @@
   border: none;
   background: transparent;
   width: 100%;
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   padding: 0;
   color: var(--text-normal);
 }
@@ -4565,6 +4601,7 @@
 .git-load-more {
   margin-top: 16px;
 }
+
 /* ===== Repo Selector (Submodule Support) ===== */
 .git-repo-selector-container {
   padding: 8px 12px;
@@ -4585,7 +4622,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--saas-transition-fast);
 }
 
 .git-repo-current:hover {
@@ -4608,12 +4645,12 @@
 }
 
 .git-repo-label {
-  font-size: 12px;
+  font-size: var(--saas-font-sm);
   color: var(--text-muted);
 }
 
 .git-repo-name {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   color: var(--text-normal);
   white-space: nowrap;
@@ -4628,7 +4665,7 @@
   transition: transform 0.2s ease;
 }
 
-.git-repo-dropdown-open + .git-repo-dropdown ~ .git-repo-current .git-repo-arrow,
+.git-repo-dropdown-open+.git-repo-dropdown~.git-repo-current .git-repo-arrow,
 .git-repo-selector:has(.git-repo-dropdown-open) .git-repo-arrow {
   transform: rotate(180deg);
 }
@@ -4659,7 +4696,7 @@
   gap: 10px;
   padding: 10px 12px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--saas-transition-fast);
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
@@ -4699,13 +4736,13 @@
 }
 
 .git-repo-option-name {
-  font-size: 13px;
+  font-size: var(--saas-font-base);
   font-weight: 500;
   color: var(--text-normal);
 }
 
 .git-repo-option-path {
-  font-size: 11px;
+  font-size: var(--saas-font-xs);
   color: var(--text-muted);
   font-family: var(--font-monospace);
 }

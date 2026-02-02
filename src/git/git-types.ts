@@ -116,6 +116,7 @@ export interface GitViewState {
   commitMessage: string;
   activePanel: "status" | "sync" | "workspace" | "review" | "conflict";
   commits: GitCommitInfo[];
+  commitsLoaded: boolean; // 커밋 이력 로드 시도 여부
   isDetachedHead: boolean;
   // Pagination & Details
   commitPage: number;

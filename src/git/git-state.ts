@@ -23,6 +23,7 @@ export class GitState {
     commitMessage: "",
     activePanel: "status",
     commits: [],
+    commitsLoaded: false,
     isDetachedHead: false,
     commitPage: 0,
     expandedCommit: null,
@@ -377,7 +378,7 @@ export class GitState {
     this.setState({ loading: true, commitPage: 0 }); // Reset pagination
     try {
       const commits = await this.service.getCommitLog(50, 0, search);
-      this.setState({ loading: false, commits });
+      this.setState({ loading: false, commits, commitsLoaded: true });
     } catch (error) {
       this.setState({
         loading: false,
@@ -516,6 +517,7 @@ export class GitState {
     this.setState({
       activeRepoPath: submodulePath,
       commits: [],
+      commitsLoaded: false,
       commitPage: 0,
       expandedCommit: null,
       selectedFiles: new Set(),

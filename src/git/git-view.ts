@@ -272,8 +272,8 @@ export class GitView extends ItemView {
       return;
     }
 
-    // 커밋 히스토리가 비어있으면 로드
-    if (state.commits.length === 0 && !state.loading) {
+    // 커밋 히스토리가 로드되지 않았으면 로드
+    if (!state.commitsLoaded && !state.loading) {
       await this.gitState.loadCommitHistory();
       return; // loadCommitHistory가 상태 변경 후 리렌더를 트리거함
     }
