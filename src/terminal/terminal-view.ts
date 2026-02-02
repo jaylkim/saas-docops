@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { Terminal } from "@xterm/xterm";
+import { Terminal, type IDisposable } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 // WebGL addon disabled - causes rendering issues in Obsidian's Shadow DOM
@@ -165,6 +165,7 @@ export class TerminalView extends ItemView {
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private isInitialized = false;
+  private terminalDisposables: IDisposable[] = [];
 
   get isReady(): boolean {
     return this.isInitialized;
@@ -212,6 +213,12 @@ export class TerminalView extends ItemView {
   }
 
   private cleanup(): void {
+    // Dispose terminal event listeners first (prevents memory leaks)
+    for (const disposable of this.terminalDisposables) {
+      disposable.dispose();
+    }
+    this.terminalDisposables = [];
+
     // Stop resize observer
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -411,19 +418,23 @@ export class TerminalView extends ItemView {
     // Create session record
     sessionManager.createSession(this.sessionId, pty.pid, cwd, shell);
 
-    // Terminal → PTY
-    this.terminal.onData((data) => {
-      if (this.sessionId) {
-        ptyManager.write(this.sessionId, data);
-      }
-    });
+    // Terminal → PTY (store disposables for proper cleanup)
+    this.terminalDisposables.push(
+      this.terminal.onData((data) => {
+        if (this.sessionId) {
+          ptyManager.write(this.sessionId, data);
+        }
+      })
+    );
 
-    // Handle terminal resize
-    this.terminal.onResize(({ cols, rows }) => {
-      if (this.sessionId) {
-        ptyManager.resize(this.sessionId, cols, rows);
-      }
-    });
+    // Handle terminal resize (store disposable for proper cleanup)
+    this.terminalDisposables.push(
+      this.terminal.onResize(({ cols, rows }) => {
+        if (this.sessionId) {
+          ptyManager.resize(this.sessionId, cols, rows);
+        }
+      })
+    );
 
     console.log(
       `[TerminalView] Session ${this.sessionId} connected (PID: ${pty.pid})`
