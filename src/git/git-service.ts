@@ -388,41 +388,57 @@ npm-debug.log*
 
   /**
    * StatusResult를 GitFile 배열로 변환
+   * simple-git의 files 배열을 사용하여 정확한 상태 파악
    */
   private parseFiles(status: StatusResult): GitFile[] {
     const files: GitFile[] = [];
 
-    // Staged files
-    for (const file of status.staged) {
-      files.push(this.createGitFile(file, "added", true));
-    }
+    for (const file of status.files) {
+      const indexStatus = file.index;      // staged 상태
+      const workdirStatus = file.working_dir;  // unstaged 상태
 
-    // Modified (staged)
-    for (const file of status.modified) {
-      const existing = files.find((f) => f.path === file);
-      if (!existing) {
-        files.push(this.createGitFile(file, "modified", false));
+      // staged 변경사항이 있는지
+      const hasStaged = indexStatus !== ' ' && indexStatus !== '?' && indexStatus !== '!';
+      // unstaged 변경사항이 있는지
+      const hasUnstaged = workdirStatus !== ' ' && workdirStatus !== '?' && workdirStatus !== '!';
+
+      // 충돌 상태 먼저 확인
+      if (indexStatus === 'U' || workdirStatus === 'U' ||
+          (indexStatus === 'A' && workdirStatus === 'A') ||
+          (indexStatus === 'D' && workdirStatus === 'D')) {
+        files.push(this.createGitFile(file.path, "conflicted", false));
+        continue;
       }
-    }
 
-    // Deleted
-    for (const file of status.deleted) {
-      files.push(this.createGitFile(file, "deleted", false));
-    }
+      // Staged 변경사항 처리
+      if (hasStaged) {
+        let fileStatus: GitFileStatus;
+        switch (indexStatus) {
+          case 'A': fileStatus = 'added'; break;
+          case 'M': fileStatus = 'modified'; break;
+          case 'D': fileStatus = 'deleted'; break;
+          case 'R': fileStatus = 'renamed'; break;
+          case 'C': fileStatus = 'copied'; break;
+          default: fileStatus = 'modified';
+        }
+        files.push(this.createGitFile(file.path, fileStatus, true));
+      }
 
-    // Renamed
-    for (const file of status.renamed) {
-      files.push(this.createGitFile(file.to, "renamed", true));
-    }
-
-    // Untracked
-    for (const file of status.not_added) {
-      files.push(this.createGitFile(file, "untracked", false));
-    }
-
-    // Conflicted
-    for (const file of status.conflicted) {
-      files.push(this.createGitFile(file, "conflicted", false));
+      // Unstaged 변경사항 처리 (staged와 별도로)
+      if (hasUnstaged) {
+        let fileStatus: GitFileStatus;
+        switch (workdirStatus) {
+          case 'M': fileStatus = 'modified'; break;
+          case 'D': fileStatus = 'deleted'; break;
+          case '?': fileStatus = 'untracked'; break;
+          default: fileStatus = 'modified';
+        }
+        // staged와 unstaged 둘 다 있으면 unstaged만 별도로 추가하지 않음
+        // (UI에서 staged 상태를 우선 표시)
+        if (!hasStaged) {
+          files.push(this.createGitFile(file.path, fileStatus, false));
+        }
+      }
     }
 
     return files;

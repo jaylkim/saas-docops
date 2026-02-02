@@ -93,7 +93,7 @@ export function renderStatusPanel(
       const upToDate = syncBox.createEl("div", { cls: "git-sync-item git-sync-uptodate" });
       const successIcon = upToDate.createEl("span", { cls: "git-sync-icon" });
       setIcon(successIcon, ICON_NAMES.success);
-      upToDate.createEl("span", { text: "모든 내용이 최신 상태입니다" });
+      upToDate.createEl("span", { text: "원격 저장소와 동기화됨" });
     }
   } else {
     const noRemote = container.createEl("div", { cls: "git-no-remote git-no-remote-action" });
