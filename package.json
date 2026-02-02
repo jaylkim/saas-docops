@@ -1,6 +1,6 @@
 {
   "name": "saas-docops",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Obsidian plugin for Claude Code integration - 비개발자도 Claude Code 풀기능을 GUI에서 사용",
   "main": "main.js",
   "scripts": {
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-unicode11": "^0.8.0",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/addon-webgl": "^0.18.0",
     "@xterm/xterm": "^5.5.0",

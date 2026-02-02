@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { Terminal, type IDisposable } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 // WebGL addon disabled - causes rendering issues in Obsidian's Shadow DOM
 // import { WebglAddon } from "@xterm/addon-webgl";
@@ -258,6 +259,12 @@ export class TerminalView extends ItemView {
   }
 
   private async initializeTerminal(container: HTMLElement): Promise<void> {
+    // Wait for fonts to load before initializing terminal
+    // This prevents Korean characters from displaying as "..." during font fallback
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+
     // Create Shadow DOM for CSS isolation
     const shadowHost = container.createDiv({ cls: "terminal-shadow-host" });
     this.shadowRoot = shadowHost.attachShadow({ mode: "open" });
@@ -296,7 +303,7 @@ export class TerminalView extends ItemView {
       fontSize: this.plugin.settings.terminalFontSize || 14,
       fontFamily:
         this.plugin.settings.terminalFontFamily ||
-        "'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Monaco, 'Courier New', monospace",
+        "'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Monaco, 'Courier New', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', monospace",
       theme: {
         background: "#1e1e1e",
         foreground: "#d4d4d4",
@@ -329,6 +336,11 @@ export class TerminalView extends ItemView {
 
     const webLinksAddon = new WebLinksAddon();
     this.terminal.loadAddon(webLinksAddon);
+
+    // Load Unicode11 addon for proper CJK character width calculation
+    const unicode11Addon = new Unicode11Addon();
+    this.terminal.loadAddon(unicode11Addon);
+    this.terminal.unicode.activeVersion = "11";
 
     // Open terminal in container
     this.terminal.open(terminalContainer);
