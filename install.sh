@@ -598,8 +598,8 @@ check_node_pty() {
 
         log_info "Rebuilding node-pty (this may take a moment)..."
 
-        # Run electron-rebuild with or without version
-        local rebuild_cmd="npx electron-rebuild -f -w node-pty"
+        # Run @electron/rebuild (newer package name) with module-dir
+        local rebuild_cmd="npx @electron/rebuild -f -w node-pty --module-dir ."
         if [ -n "$electron_version" ]; then
             rebuild_cmd="$rebuild_cmd -v $electron_version"
         fi
@@ -610,9 +610,9 @@ check_node_pty() {
             log_error "Rebuild failed. Try manually:"
             log_error "  cd '$plugin_dir'"
             if [ -n "$electron_version" ]; then
-                log_error "  npx electron-rebuild -f -w node-pty -v $electron_version"
+                log_error "  npx @electron/rebuild -f -w node-pty --module-dir . -v $electron_version"
             else
-                log_error "  npx electron-rebuild -f -w node-pty"
+                log_error "  npx @electron/rebuild -f -w node-pty --module-dir ."
             fi
             return 1
         fi
