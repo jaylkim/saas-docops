@@ -249,6 +249,12 @@ export class GitView extends ItemView {
   private async renderHistoryTab(container: HTMLElement, state: GitViewState): Promise<void> {
     if (!this.gitState) return;
 
+    // Git 저장소가 아닌 경우 바로 패널 렌더링 (메시지 표시)
+    if (!state.status?.isRepo) {
+      renderHistoryPanel(container, state, this.gitState, this.app);
+      return;
+    }
+
     // 커밋 히스토리가 비어있으면 로드
     if (state.commits.length === 0 && !state.loading) {
       await this.gitState.loadCommitHistory();

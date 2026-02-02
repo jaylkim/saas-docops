@@ -10,7 +10,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PLUGIN_ID="saas-docops"
 
 # Default test vault (can be overridden via argument)
-DEFAULT_VAULT="/Users/jay/projects/temp"
+DEFAULT_VAULT="/Users/vim/projects/temp"
 VAULT_PATH="${1:-$DEFAULT_VAULT}"
 
 # Derived paths
