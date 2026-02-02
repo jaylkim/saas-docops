@@ -116,6 +116,9 @@ main() {
     cp "$PROJECT_DIR/styles.css" "$PACKAGE_DIR/"
     cp "$PROJECT_DIR/manifest.json" "$PACKAGE_DIR/"
 
+    # Copy package.json (required for @electron/rebuild)
+    cp "$PROJECT_DIR/package.json" "$PACKAGE_DIR/"
+
     # Copy node-pty (native module)
     mkdir -p "$PACKAGE_DIR/node_modules"
     cp -r "$PROJECT_DIR/node_modules/node-pty" "$PACKAGE_DIR/node_modules/"

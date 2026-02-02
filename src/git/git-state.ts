@@ -161,10 +161,11 @@ export class GitState {
   // ===== 커밋 메시지 =====
 
   /**
-   * 커밋 메시지 업데이트
+   * 커밋 메시지 업데이트 (리렌더링 없이 상태만 저장)
+   * 리렌더링하면 textarea가 새로 생성되어 IME 조합이 깨짐
    */
   setCommitMessage(message: string): void {
-    this.setState({ commitMessage: message });
+    this.state = { ...this.state, commitMessage: message };
   }
 
   /**
