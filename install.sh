@@ -554,17 +554,7 @@ check_node_pty() {
     if [ "$REBUILD_PTY" = true ] || [ ! -f "$pty_binary" ]; then
         log_warn "node-pty binary needs rebuild."
 
-        # Get Obsidian's Electron version
-        local electron_version
-        electron_version=$(defaults read /Applications/Obsidian.app/Contents/Info.plist ElectronVersion 2>/dev/null || echo "")
-
-        if [ -z "$electron_version" ]; then
-            log_warn "Could not detect Obsidian Electron version."
-            log_warn "Run manually: cd '$plugin_dir' && npx electron-rebuild -f -w node-pty"
-            return 1
-        fi
-
-        # Check for build tools
+        # Check for build tools first
         if ! command -v make &> /dev/null || (! command -v cc &> /dev/null && ! command -v clang &> /dev/null); then
             log_error "Build tools (make, compiler) not found."
             log_warn "Please run 'xcode-select --install' to install Command Line Tools."
@@ -572,10 +562,34 @@ check_node_pty() {
             return 1
         fi
 
-        log_info "Detected Electron version: $electron_version"
+        # Try to detect Obsidian's Electron version (multiple methods)
+        local electron_version=""
+
+        # Method 1: Info.plist ElectronVersion key (older Obsidian versions)
+        electron_version=$(defaults read /Applications/Obsidian.app/Contents/Info.plist ElectronVersion 2>/dev/null || echo "")
+
+        # Method 2: Obsidian version -> known Electron version mapping
+        if [ -z "$electron_version" ]; then
+            local obsidian_version
+            obsidian_version=$(defaults read /Applications/Obsidian.app/Contents/Info.plist CFBundleShortVersionString 2>/dev/null || echo "")
+            if [ -n "$obsidian_version" ]; then
+                # Obsidian 1.8+ uses Electron 33.x
+                local major minor
+                major=$(echo "$obsidian_version" | cut -d. -f1)
+                minor=$(echo "$obsidian_version" | cut -d. -f2)
+                if [ "$major" -ge 1 ] && [ "$minor" -ge 8 ]; then
+                    electron_version="33.3.2"
+                    log_info "Obsidian $obsidian_version detected, using Electron $electron_version"
+                fi
+            fi
+        fi
 
         if [ "$INTERACTIVE" = true ] && [ "$TTY_AVAILABLE" = true ] && [ "$REBUILD_PTY" = false ]; then
-            REPLY=$(safe_read_char "    Rebuild node-pty for Electron $electron_version? [Y/n] " "y")
+            local prompt_msg="    Rebuild node-pty"
+            if [ -n "$electron_version" ]; then
+                prompt_msg="$prompt_msg for Electron $electron_version"
+            fi
+            REPLY=$(safe_read_char "$prompt_msg? [Y/n] " "y")
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
                 log_warn "Skipping rebuild. Terminal may not work correctly."
                 return 1
@@ -583,12 +597,23 @@ check_node_pty() {
         fi
 
         log_info "Rebuilding node-pty (this may take a moment)..."
-        if (cd "$plugin_dir" && npx electron-rebuild -f -w node-pty -v "$electron_version" 2>/dev/null); then
+
+        # Run electron-rebuild with or without version
+        local rebuild_cmd="npx electron-rebuild -f -w node-pty"
+        if [ -n "$electron_version" ]; then
+            rebuild_cmd="$rebuild_cmd -v $electron_version"
+        fi
+
+        if (cd "$plugin_dir" && eval "$rebuild_cmd" 2>&1); then
             log_success "node-pty rebuilt successfully."
         else
             log_error "Rebuild failed. Try manually:"
             log_error "  cd '$plugin_dir'"
-            log_error "  npx electron-rebuild -f -w node-pty -v $electron_version"
+            if [ -n "$electron_version" ]; then
+                log_error "  npx electron-rebuild -f -w node-pty -v $electron_version"
+            else
+                log_error "  npx electron-rebuild -f -w node-pty"
+            fi
             return 1
         fi
     fi
