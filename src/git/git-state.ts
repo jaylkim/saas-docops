@@ -2,8 +2,9 @@
  * Git State - 반응형 상태 관리
  */
 
+import * as path from "path";
 import { GitService } from "./git-service";
-import { GitStatus, GitBranch, GitViewState, GitOperationResult, GitCommitInfo } from "./git-types";
+import { GitStatus, GitBranch, GitViewState, GitOperationResult, GitCommitInfo, GitSubmoduleInfo } from "./git-types";
 
 type StateListener = (state: GitViewState) => void;
 
@@ -11,6 +12,7 @@ export class GitState {
   private service: GitService;
   private listeners: Set<StateListener> = new Set();
   private refreshTimer: ReturnType<typeof setInterval> | null = null;
+  private mainRepoPath: string;  // 메인 저장소 경로 (submodule 전환용)
 
   private state: GitViewState = {
     loading: true,
@@ -25,9 +27,12 @@ export class GitState {
     commitPage: 0,
     expandedCommit: null,
     detailLoading: false,
+    submodules: [],
+    activeRepoPath: null,
   };
 
   constructor(repoPath: string) {
+    this.mainRepoPath = repoPath;
     this.service = new GitService(repoPath);
   }
 
@@ -94,11 +99,18 @@ export class GitState {
         this.service.isDetachedHead(),
       ]);
 
+      // 메인 저장소일 때만 submodule 목록 조회
+      let submodules: GitSubmoduleInfo[] = this.state.submodules;
+      if (this.state.activeRepoPath === null) {
+        submodules = await this.service.getSubmoduleList();
+      }
+
       this.setState({
         loading: false,
         status,
         branches,
         isDetachedHead,
+        submodules,
         error: status.isRepo ? null : "Git 저장소가 아닙니다",
       });
     } catch (error) {
@@ -470,6 +482,104 @@ export class GitState {
       await this.loadCommitHistory();
     }
     return result;
+  }
+
+  // ===== Submodule 지원 =====
+
+  /**
+   * 메인 저장소 경로 반환
+   */
+  getMainRepoPath(): string {
+    return this.mainRepoPath;
+  }
+
+  /**
+   * 현재 활성 저장소 경로 (submodule 포함) 반환
+   */
+  getActiveRepoPath(): string | null {
+    return this.state.activeRepoPath;
+  }
+
+  /**
+   * 저장소 전환 (메인 또는 submodule)
+   * @param submodulePath submodule 상대 경로 또는 null(메인으로 복귀)
+   */
+  async switchRepo(submodulePath: string | null): Promise<void> {
+    const targetPath = submodulePath
+      ? path.join(this.mainRepoPath, submodulePath)
+      : this.mainRepoPath;
+
+    // GitService 인스턴스 교체
+    this.service = new GitService(targetPath);
+
+    // 상태 초기화 (커밋 이력 등 리셋)
+    this.setState({
+      activeRepoPath: submodulePath,
+      commits: [],
+      commitPage: 0,
+      expandedCommit: null,
+      selectedFiles: new Set(),
+      commitMessage: "",
+    });
+
+    // 새로고침
+    await this.refresh();
+  }
+
+  /**
+   * Submodule 추가
+   */
+  async addSubmodule(url: string, path: string): Promise<GitOperationResult> {
+    const mainService = new GitService(this.mainRepoPath);
+    const result = await mainService.addSubmodule(url, path);
+
+    if (result.success) {
+      const submodules = await mainService.getSubmoduleList();
+      this.setState({ submodules });
+    }
+
+    return result;
+  }
+
+  /**
+   * 특정 Submodule 초기화
+   */
+  async initSubmodule(submodulePath: string): Promise<GitOperationResult> {
+    // 메인 저장소의 service 사용
+    const mainService = new GitService(this.mainRepoPath);
+    const result = await mainService.initSubmodule(submodulePath);
+
+    if (result.success) {
+      // submodule 목록 다시 로드
+      const submodules = await mainService.getSubmoduleList();
+      this.setState({ submodules });
+    }
+
+    return result;
+  }
+
+  /**
+   * 모든 Submodule 초기화
+   */
+  async initAllSubmodules(): Promise<GitOperationResult> {
+    // 메인 저장소의 service 사용
+    const mainService = new GitService(this.mainRepoPath);
+    const result = await mainService.initAllSubmodules();
+
+    if (result.success) {
+      // submodule 목록 다시 로드
+      const submodules = await mainService.getSubmoduleList();
+      this.setState({ submodules });
+    }
+
+    return result;
+  }
+
+  /**
+   * Submodule 존재 여부
+   */
+  hasSubmodules(): boolean {
+    return this.state.submodules.length > 0;
   }
 
   /**

@@ -76,6 +76,11 @@ export const ICON_NAMES = {
   shield: "shield",
   info: "info",
   help: "help-circle",
+  chevronDown: "chevron-down",
+  chevronUp: "chevron-up",
+  folderClosed: "folder-closed",
+  download: "download",
+  plus: "plus",
 } as const;
 
 export type IconName = keyof typeof ICON_NAMES;

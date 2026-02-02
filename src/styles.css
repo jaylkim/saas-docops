@@ -4565,3 +4565,233 @@
 .git-load-more {
   margin-top: 16px;
 }
+/* ===== Repo Selector (Submodule Support) ===== */
+.git-repo-selector-container {
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.git-repo-selector {
+  position: relative;
+}
+
+.git-repo-current {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.git-repo-current:hover {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+.git-repo-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.git-repo-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.git-repo-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.git-repo-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.git-repo-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.git-repo-dropdown-open + .git-repo-dropdown ~ .git-repo-current .git-repo-arrow,
+.git-repo-selector:has(.git-repo-dropdown-open) .git-repo-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.git-repo-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: none;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.git-repo-dropdown.git-repo-dropdown-open {
+  display: block;
+}
+
+.git-repo-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.git-repo-option:last-child {
+  border-bottom: none;
+}
+
+.git-repo-option:hover {
+  background: var(--background-modifier-hover);
+}
+
+.git-repo-option.git-repo-option-active {
+  background: rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+.git-repo-option.git-repo-option-disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.git-repo-option.git-repo-option-disabled:hover {
+  background: transparent;
+}
+
+.git-repo-option-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.git-repo-option-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.git-repo-option-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.git-repo-option-path {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+}
+
+.git-repo-option-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  display: inline-block;
+  width: fit-content;
+}
+
+.git-badge-main {
+  background: rgba(var(--interactive-accent-rgb), 0.15);
+  color: var(--interactive-accent);
+}
+
+.git-badge-warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--color-orange, #ff9800);
+}
+
+.git-repo-init-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.git-repo-init-all {
+  padding: 10px 12px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+/* Uninitialized Submodule Message */
+.git-uninitialized-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.git-uninitialized-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 152, 0, 0.1);
+  color: var(--color-orange, #ff9800);
+}
+
+.git-uninitialized-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.git-uninitialized-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+}
+
+.git-uninitialized-content h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.git-uninitialized-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.git-uninitialized-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

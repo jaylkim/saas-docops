@@ -18,6 +18,7 @@ import {
   GitConflict,
   ConflictResolution,
   GitCommitInfo,
+  GitSubmoduleInfo,
 } from "./git-types";
 
 export class GitService {
@@ -404,8 +405,8 @@ npm-debug.log*
 
       // 충돌 상태 먼저 확인
       if (indexStatus === 'U' || workdirStatus === 'U' ||
-          (indexStatus === 'A' && workdirStatus === 'A') ||
-          (indexStatus === 'D' && workdirStatus === 'D')) {
+        (indexStatus === 'A' && workdirStatus === 'A') ||
+        (indexStatus === 'D' && workdirStatus === 'D')) {
         files.push(this.createGitFile(file.path, "conflicted", false));
         continue;
       }
@@ -1336,5 +1337,204 @@ npm-debug.log*
         error: error instanceof Error ? error.message : String(error),
       };
     }
+  }
+
+  // ===== Submodule 지원 =====
+
+  /**
+   * Submodule 목록 조회 (.gitmodules 파싱)
+   */
+  async getSubmoduleList(): Promise<GitSubmoduleInfo[]> {
+    try {
+      const gitmodulesPath = path.join(this.repoPath, ".gitmodules");
+
+      // .gitmodules 파일 존재 여부 확인
+      if (!fs.existsSync(gitmodulesPath)) {
+        return [];
+      }
+
+      // 1. .gitmodules 파싱 (URL 및 Path 정보)
+      const content = await fs.promises.readFile(gitmodulesPath, "utf-8");
+      const submoduleConfigs: Record<string, { name: string; url: string }> = {};
+
+      const lines = content.split("\n");
+      let currentName = "";
+      let currentPath = "";
+      let currentUrl = "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        const submoduleMatch = trimmed.match(/^\[submodule\s+"([^"]+)"\]$/);
+        if (submoduleMatch) {
+          if (currentName && currentPath) {
+            submoduleConfigs[currentPath] = { name: currentName, url: currentUrl };
+          }
+          currentName = submoduleMatch[1];
+          currentPath = "";
+          currentUrl = "";
+          continue;
+        }
+
+        const pathMatch = trimmed.match(/^path\s*=\s*(.+)$/);
+        if (pathMatch) currentPath = pathMatch[1].trim();
+
+        const urlMatch = trimmed.match(/^url\s*=\s*(.+)$/);
+        if (urlMatch) currentUrl = urlMatch[1].trim();
+      }
+
+      if (currentName && currentPath) {
+        submoduleConfigs[currentPath] = { name: currentName, url: currentUrl };
+      }
+
+      // 2. git submodule status 파싱 (상태 및 커밋 정보)
+      // 출력 예: "-d2e8b... path/to/submodule (version)"
+      // prefix: '-' (uninit), '+' (modified), 'U' (conflict), ' ' (clean)
+      const statusOutput = await this.git.raw(["submodule", "status"]);
+      const submodules: GitSubmoduleInfo[] = [];
+
+      for (const line of statusOutput.split("\n")) {
+        if (!line.trim()) continue;
+
+        // 정규식: (prefix)(sha) (path) ((version))?
+        const match = line.match(/^([-\+U ]?)([0-9a-f]+)\s+(.+?)(?:\s+\(.*\))?$/);
+        if (!match) continue;
+
+        const [, prefix, sha, subPath] = match;
+        const config = submoduleConfigs[subPath];
+
+        // .gitmodules에 없는데 status에는 있는 경우 (드물지만) 무시하거나 name을 path로
+        const name = config?.name || subPath;
+        const url = config?.url;
+        const absolutePath = path.join(this.repoPath, subPath);
+
+        let status: GitSubmoduleInfo["status"] = "clean";
+        let isInitialized = true;
+
+        if (prefix === "-") {
+          status = "unknown";
+          isInitialized = false;
+        } else if (prefix === "+") {
+          status = "out-of-sync";
+        } else if (prefix === "U") {
+          status = "modified"; // Conflict but technically modified in index
+        } else {
+          // prefix ' ' means match encoded in HEAD
+          // 추가로 working dir이 dirty한지 확인하려면 별도 체크 필요하지만, 
+          // 일단 submodule status 결과만으로도 유의미함
+          status = "clean";
+        }
+
+        submodules.push({
+          name,
+          path: subPath,
+          absolutePath,
+          url,
+          isInitialized,
+          headCommit: sha,
+          status,
+        });
+      }
+
+      // .gitmodules에는 있지만 status에는 없는 경우 (아직 git submodule status에 안 뜰 수도 있음)
+      for (const [subPath, config] of Object.entries(submoduleConfigs)) {
+        if (!submodules.find(s => s.path === subPath)) {
+          submodules.push({
+            name: config.name,
+            path: subPath,
+            absolutePath: path.join(this.repoPath, subPath),
+            url: config.url,
+            isInitialized: false,
+            status: "unknown"
+          });
+        }
+      }
+
+      return submodules;
+    } catch (error) {
+      console.error("Failed to get submodule list:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Submodule 추가
+   */
+  async addSubmodule(url: string, subPath: string): Promise<GitOperationResult> {
+    try {
+      await this.git.submoduleAdd(url, subPath);
+      return {
+        success: true,
+        message: "하위 저장소가 추가되었습니다",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "하위 저장소 추가 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Submodule 초기화 여부 확인
+   * (submodule 디렉토리 내에 .git 파일/폴더가 있는지 확인)
+   */
+  private isSubmoduleInitialized(submodulePath: string): boolean {
+    try {
+      const gitPath = path.join(submodulePath, ".git");
+      return fs.existsSync(gitPath);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * 특정 Submodule 초기화
+   */
+  async initSubmodule(submodulePath: string): Promise<GitOperationResult> {
+    try {
+      // git submodule update --init <path>
+      await this.git.submoduleUpdate(["--init", submodulePath]);
+
+      return {
+        success: true,
+        message: `'${submodulePath}' 하위 저장소가 초기화되었습니다`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "하위 저장소 초기화 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * 모든 Submodule 초기화
+   */
+  async initAllSubmodules(): Promise<GitOperationResult> {
+    try {
+      // git submodule update --init --recursive
+      await this.git.submoduleUpdate(["--init", "--recursive"]);
+
+      return {
+        success: true,
+        message: "모든 하위 저장소가 초기화되었습니다",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: "하위 저장소 초기화 실패",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Submodule 존재 여부 확인
+   */
+  async hasSubmodules(): Promise<boolean> {
+    const gitmodulesPath = path.join(this.repoPath, ".gitmodules");
+    return fs.existsSync(gitmodulesPath);
   }
 }

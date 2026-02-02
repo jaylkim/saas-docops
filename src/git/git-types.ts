@@ -95,6 +95,17 @@ export interface GitCommitInfo {
   files?: GitFile[]; // 변경된 파일 목록 (선택적)
 }
 
+// Submodule 정보 (저장소 선택 목록용)
+export interface GitSubmoduleInfo {
+  name: string; // 표시 이름
+  path: string; // vault 기준 상대 경로
+  absolutePath: string; // 절대 경로
+  url?: string; // 원격 URL
+  isInitialized: boolean; // 초기화 여부 (.git 존재 여부)
+  headCommit?: string; // 현재 HEAD 커밋 해시
+  status?: "clean" | "modified" | "out-of-sync" | "unknown"; // 상태
+}
+
 // View 상태
 export interface GitViewState {
   loading: boolean;
@@ -110,6 +121,9 @@ export interface GitViewState {
   commitPage: number;
   expandedCommit: string | null; // 상세 내용을 보고 있는 커밋 해시
   detailLoading: boolean; // 상세 내용 로딩 중
+  // Submodule 지원
+  submodules: GitSubmoduleInfo[];     // submodule 목록
+  activeRepoPath: string | null;       // 현재 선택된 repo 경로 (null = 메인)
 }
 
 // 비개발자 친화 용어 매핑
@@ -131,6 +145,9 @@ export const GIT_TERMS = {
   checkout: "이동",
   detachedHead: "과거 버전 보기 모드",
   returnToLatest: "최신으로 돌아가기",
+  submodule: "하위 저장소",
+  mainRepo: "메인 저장소",
+  uninitializedSubmodule: "초기화 필요",
 } as const;
 
 // 상태 아이콘 (이모지 - 텍스트 표시용, 예: Notice)

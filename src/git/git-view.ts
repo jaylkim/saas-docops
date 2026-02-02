@@ -17,6 +17,8 @@ import {
   renderReviewPanel,
   renderConflictPanel,
   renderHistoryPanel,
+  renderRepoSelector,
+  renderUninitializedSubmoduleMessage,
 } from "./components";
 
 export const GIT_VIEW_TYPE = "integration-git-view";
@@ -111,6 +113,12 @@ export class GitView extends ItemView {
 
     // 헤더
     this.renderHeader(container, state);
+
+    // 저장소 선택 (submodule이 있을 때만 표시)
+    if (this.gitState && state.submodules.length > 0) {
+      const repoSelectorContainer = container.createEl("div", { cls: "git-repo-selector-container" });
+      renderRepoSelector(repoSelectorContainer, state, this.gitState, this.app);
+    }
 
     // 탭 네비게이션
     this.renderTabs(container, state);
@@ -216,6 +224,15 @@ export class GitView extends ItemView {
 
   private renderContent(container: HTMLElement, state: GitViewState): void {
     if (!this.gitState) return;
+
+    // 초기화되지 않은 submodule 선택 시 안내 메시지 표시
+    if (state.activeRepoPath) {
+      const submodule = state.submodules.find(s => s.path === state.activeRepoPath);
+      if (submodule && !submodule.isInitialized) {
+        renderUninitializedSubmoduleMessage(container, state, this.gitState);
+        return;
+      }
+    }
 
     // Render Tab Description if available
     const activeTabConfig = TABS.find((t) => t.id === this.activeTab);
