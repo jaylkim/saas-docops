@@ -497,12 +497,17 @@ except: print('unknown')
     fi
 
     if [ -d "$target_dir" ]; then
-        local backup_name="${target_dir}.bak.$(date +%Y%m%d-%H%M%S)"
-        log_info "Backing up existing version to $(basename "$backup_name")..."
+        # Backup to ~/.saas-docops/backups/ to avoid Obsidian picking up backup as plugin
+        local vault_name
+        vault_name=$(basename "$SELECTED_VAULT")
+        local backup_dir="$HOME/.saas-docops/backups/$vault_name"
+        local backup_name="$backup_dir/${PLUGIN_ID}.bak.$(date +%Y%m%d-%H%M%S)"
+        mkdir -p "$backup_dir"
+        log_info "Backing up existing version to $backup_name..."
         mv "$target_dir" "$backup_name"
 
-        # Keep only last 3 backups (safely handle filenames with spaces)
-        find "$(dirname "$target_dir")" -maxdepth 1 -name "$(basename "$target_dir").bak.*" -type d -print0 2>/dev/null | \
+        # Keep only last 3 backups per vault
+        find "$backup_dir" -maxdepth 1 -name "${PLUGIN_ID}.bak.*" -type d -print0 2>/dev/null | \
             xargs -0 ls -dt 2>/dev/null | tail -n +4 | while read -r old_backup; do
                 rm -rf "$old_backup"
             done 2>/dev/null || true
